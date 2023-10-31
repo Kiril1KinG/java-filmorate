@@ -24,7 +24,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void MethodAddFilmShouldReturnExpectedFilm() {
+    public void methodAddFilmShouldReturnExpectedFilm() {
         Film film1 = new Film(1, "name", "desc", LocalDate.of(1900, 12, 4), 100L);
         Film expected = new Film(1, "name", "desc", LocalDate.of(1900, 12, 4), 100L);
         Assertions.assertEquals(filmController.addFilm(film1), expected);

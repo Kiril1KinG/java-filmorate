@@ -18,20 +18,20 @@ public class UserControllerTest {
     }
 
     @Test
-    public void ValidationShouldReturnEqualsLoginAndNameIfNameIsEmpty() {
+    public void validationShouldReturnEqualsLoginAndNameIfNameIsEmpty() {
         User user1 = new User(1, "bvbc@mail.ru", "log", "", LocalDate.of(1990, 12, 12));
         this.userController.addUser(user1);
         Assertions.assertEquals(user1.getLogin(), user1.getName());
     }
 
     @Test
-    public void ValidationShouldReturnExceptionIfLoginContainsSpaces() {
+    public void validationShouldReturnExceptionIfLoginContainsSpaces() {
         User user1 = new User(1, "bvbc@mail.ru", "lo g", "", LocalDate.of(1990, 12, 12));
         Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user1));
     }
 
     @Test
-    public void MethodAddUserShouldCreateExpectedUser() {
+    public void methodAddUserShouldCreateExpectedUser() {
         User user1 = new User(1, "bvbc@mail.ru", "log", "", LocalDate.of(1990, 12, 12));
         User expected = new User(1, "bvbc@mail.ru", "log", "log", LocalDate.of(1990, 12, 12));
         Assertions.assertEquals(userController.addUser(user1), expected);
