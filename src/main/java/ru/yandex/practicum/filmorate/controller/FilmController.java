@@ -29,8 +29,11 @@ public class FilmController {
 
     private int currentId = 0;
 
-    private boolean valid(Film film) {
-        return !film.getReleaseDate().isBefore(FIRST_FILM);
+    private void validateReleaseDate(Film film) {
+        if (film.getReleaseDate().isBefore(FIRST_FILM)){
+            log.info("Validation failed: Incorrect release date");
+            throw new ValidationException("Incorrect release date");
+        }
     }
 
     @GetMapping
@@ -40,15 +43,12 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@RequestBody @Valid Film film) {
-        if (valid(film)) {
-            films.put(++currentId, film);
-            film.setId(currentId);
-            return film;
-        } else {
-            log.info("Validation failed: Incorrect release date");
-            throw new ValidationException("Incorrect release date");
-        }
+        validateReleaseDate(film);
+        films.put(++currentId, film);
+        film.setId(currentId);
+        return film;
     }
+
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
