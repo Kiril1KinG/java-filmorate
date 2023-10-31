@@ -22,7 +22,7 @@ import ru.yandex.practicum.filmorate.model.User;
 @RequestMapping("/users")
 public class UserController {
 
-    Map<Integer, User> data = new HashMap();
+    Map<Integer, User> users = new HashMap();
     private int currentId = 0;
 
     private void validate(User user) {
@@ -39,14 +39,14 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getData() {
-        return new ArrayList(this.data.values());
+    public List<User> getUsers() {
+        return new ArrayList(this.users.values());
     }
 
     @PostMapping
     public User addUser(@RequestBody @Valid User user) {
         validate(user);
-        data.put(++currentId, user);
+        users.put(++currentId, user);
         user.setId(currentId);
         log.info("Создан пользователь: {}", user);
         return user;
@@ -54,8 +54,8 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody @Valid User user) {
-        if (data.containsKey(user.getId())) {
-            data.put(user.getId(), user);
+        if (users.containsKey(user.getId())) {
+            users.put(user.getId(), user);
             log.info("Изменен пользователь: {}", user);
             return user;
         } else {
