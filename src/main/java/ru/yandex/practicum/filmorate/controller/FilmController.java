@@ -45,7 +45,7 @@ public class FilmController {
             film.setId(currentId);
             return film;
         } else {
-            log.info("Validation error: Incorrect release date");
+            log.info("Validation failed: Incorrect release date");
             throw new ValidationException("Incorrect release date");
         }
     }

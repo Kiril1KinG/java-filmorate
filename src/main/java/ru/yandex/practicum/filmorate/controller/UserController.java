@@ -33,8 +33,8 @@ public class UserController {
         }
 
         if (user.getLogin().contains(" ")) {
-            log.info("Не пройдена валидация: Логин не может сожержать пробелы");
-            throw new ValidationException("Логин не может сожержать пробелы");
+            log.info("Validation failed: Login cannot contain spaces");
+            throw new ValidationException("Login cannot contain spaces");
         }
     }
 
@@ -48,7 +48,7 @@ public class UserController {
         validate(user);
         users.put(++currentId, user);
         user.setId(currentId);
-        log.info("Создан пользователь: {}", user);
+        log.info("User created: {}", user);
         return user;
     }
 
@@ -56,11 +56,11 @@ public class UserController {
     public User updateUser(@RequestBody @Valid User user) {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
-            log.info("Изменен пользователь: {}", user);
+            log.info("User updated: {}", user);
             return user;
         } else {
-            log.info("Ошибка обновления: Пользователь не найден");
-            throw new DataNotFoundException("Пользователь не найден");
+            log.info("Update failed: User not found");
+            throw new DataNotFoundException("User not found");
         }
     }
 }
