@@ -22,12 +22,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    Map<Integer, Film> data = new HashMap();
-
-    private int currentId = 0;
 
     private static final LocalDate FIRST_MOVIE = LocalDate.of(1895, 12, 28);
 
+    Map<Integer, Film> data = new HashMap();
+
+    private int currentId = 0;
 
     private boolean valid(Film film) {
         return !film.getReleaseDate().isBefore(FIRST_MOVIE);
