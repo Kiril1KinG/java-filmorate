@@ -30,7 +30,7 @@ public class FilmController {
     private int currentId = 0;
 
     private void validateReleaseDate(Film film) {
-        if (film.getReleaseDate().isBefore(FIRST_FILM)){
+        if (film.getReleaseDate().isBefore(FIRST_FILM)) {
             log.info("Validation failed: Incorrect release date");
             throw new ValidationException("Incorrect release date");
         }
