@@ -23,14 +23,14 @@ import ru.yandex.practicum.filmorate.model.Film;
 @RequestMapping("/films")
 public class FilmController {
 
-    private static final LocalDate FIRST_MOVIE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate FIRST_FILM = LocalDate.of(1895, 12, 28);
 
     Map<Integer, Film> films = new HashMap();
 
     private int currentId = 0;
 
     private boolean valid(Film film) {
-        return !film.getReleaseDate().isBefore(FIRST_MOVIE);
+        return !film.getReleaseDate().isBefore(FIRST_FILM);
     }
 
     @GetMapping
@@ -45,15 +45,15 @@ public class FilmController {
             film.setId(currentId);
             return film;
         } else {
-            log.info("Ошибка валидации: Неккоректная дата выхода фильма");
-            throw new ValidationException("Неккоректная дата выхода фильма");
+            log.info("Validation error: Incorrect release date");
+            throw new ValidationException("Incorrect release date");
         }
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
         if (!films.containsKey(film.getId())) {
-            throw new DataNotFoundException("Фильм не найден");
+            throw new DataNotFoundException("Film not found");
         }
         films.put(film.getId(), film);
         return film;
