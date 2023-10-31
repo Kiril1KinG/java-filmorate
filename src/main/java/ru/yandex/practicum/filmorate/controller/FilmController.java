@@ -25,7 +25,7 @@ public class FilmController {
 
     private static final LocalDate FIRST_MOVIE = LocalDate.of(1895, 12, 28);
 
-    Map<Integer, Film> data = new HashMap();
+    Map<Integer, Film> films = new HashMap();
 
     private int currentId = 0;
 
@@ -34,14 +34,14 @@ public class FilmController {
     }
 
     @GetMapping
-    public List<Film> getData() {
-        return new ArrayList(data.values());
+    public List<Film> getFilms() {
+        return new ArrayList(films.values());
     }
 
     @PostMapping
     public Film addFilm(@RequestBody @Valid Film film) {
         if (valid(film)) {
-            data.put(++currentId, film);
+            films.put(++currentId, film);
             film.setId(currentId);
             return film;
         } else {
@@ -52,8 +52,8 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
-        if (data.containsKey(film.getId())) {
-            data.put(film.getId(), film);
+        if (films.containsKey(film.getId())) {
+            films.put(film.getId(), film);
             return film;
         } else {
             log.info("Ошибка обновления: Фильм не найден");
