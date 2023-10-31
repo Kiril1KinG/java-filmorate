@@ -26,12 +26,9 @@ public class UserController {
     private int currentId = 0;
 
     private void validate(User user) {
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        } else if (user.getName().isBlank()) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-
         if (user.getLogin().contains(" ")) {
             log.info("Validation failed: Login cannot contain spaces");
             throw new ValidationException("Login cannot contain spaces");
