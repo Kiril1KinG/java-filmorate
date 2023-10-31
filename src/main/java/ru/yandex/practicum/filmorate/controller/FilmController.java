@@ -52,12 +52,10 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            return film;
-        } else {
-            log.info("Ошибка обновления: Фильм не найден");
+        if (!films.containsKey(film.getId())) {
             throw new DataNotFoundException("Фильм не найден");
         }
+        films.put(film.getId(), film);
+        return film;
     }
 }
