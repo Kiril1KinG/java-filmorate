@@ -51,13 +51,13 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody @Valid User user) {
-        if (users.containsKey(user.getId())) {
-            users.put(user.getId(), user);
-            log.info("User updated: {}", user);
-            return user;
-        } else {
+        if (!users.containsKey(user.getId())) {
             log.info("Update failed: User not found");
             throw new DataNotFoundException("User not found");
         }
+        users.put(user.getId(), user);
+        log.info("User updated: {}", user);
+        return user;
+
     }
 }
