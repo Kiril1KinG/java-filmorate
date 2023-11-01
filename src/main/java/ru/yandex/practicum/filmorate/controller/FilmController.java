@@ -25,7 +25,7 @@ public class FilmController {
 
     private static final LocalDate FIRST_FILM = LocalDate.of(1895, 12, 28);
 
-    Map<Integer, Film> films = new HashMap();
+    private Map<Integer, Film> films = new HashMap();
 
     private int currentId = 0;
 

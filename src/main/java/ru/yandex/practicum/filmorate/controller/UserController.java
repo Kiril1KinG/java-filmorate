@@ -22,7 +22,7 @@ import ru.yandex.practicum.filmorate.model.User;
 @RequestMapping("/users")
 public class UserController {
 
-    Map<Integer, User> users = new HashMap();
+    private Map<Integer, User> users = new HashMap();
     private int currentId = 0;
 
     private void validate(User user) {
