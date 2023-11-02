@@ -11,14 +11,14 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
 
     private int currentId = 0;
 
     private final Map<Integer, User> users = new HashMap<>();
 
     @Override
-    public User addUser(User user){
+    public User addUser(User user) {
         users.put(++currentId, user);
         user.setId(currentId);
         log.info("User created: {}", user);
@@ -26,18 +26,18 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public User updateUser(User user){
+    public User updateUser(User user) {
         users.put(user.getId(), user);
         log.info("User updated: {}", user);
         return user;
     }
 
     @Override
-    public List<User> getUsers(){
+    public List<User> getUsers() {
         return new ArrayList<>(users.values());
     }
 
-    public User getUserById(int id){
+    public User getUserById(int id) {
         return users.get(id);
     }
 }

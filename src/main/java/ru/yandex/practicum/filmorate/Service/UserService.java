@@ -51,8 +51,8 @@ public class UserService {
 
     public List<User> getMutualFriends(int userId, int friendId) {
         final List<Integer> mutualFriendsIds = new ArrayList<>();
-        for (int id : userStorage.getUserById(userId).getFriends()){
-            if (userStorage.getUserById(friendId).getFriends().contains(id)){
+        for (int id : userStorage.getUserById(userId).getFriends()) {
+            if (userStorage.getUserById(friendId).getFriends().contains(id)) {
                 mutualFriendsIds.add(id);
             }
         }
@@ -81,14 +81,14 @@ public class UserService {
         }
     }
 
-    public User addUser(User user){
+    public User addUser(User user) {
         validate(user);
         log.info("User added: {}", user);
         return userStorage.addUser(user);
     }
 
-    public User updateUser(User user){
-        if (!userStorage.getUsers().contains(user)){
+    public User updateUser(User user) {
+        if (!userStorage.getUsers().contains(user)) {
             log.info("Update failed: User not found");
             throw new DataNotFoundException("User not found");
         }
@@ -96,13 +96,13 @@ public class UserService {
         return userStorage.updateUser(user);
     }
 
-    public List<User> getUsers(){
+    public List<User> getUsers() {
         log.info("Users received: {}", userStorage.getUsers());
         return userStorage.getUsers();
     }
 
-    public User getUserById(int id){
-        if (!userStorage.getUsers().contains(userStorage.getUserById(id))){
+    public User getUserById(int id) {
+        if (!userStorage.getUsers().contains(userStorage.getUserById(id))) {
             log.info("Get user failed: User not found");
             throw new DataNotFoundException("User not found");
         }

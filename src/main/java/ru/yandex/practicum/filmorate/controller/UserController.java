@@ -23,7 +23,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id){
+    public User getUserById(@PathVariable int id) {
         log.info("GET: /users/{}", id);
         return userService.getUserById(id);
     }
@@ -41,25 +41,25 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public User addFriend(@PathVariable int id, @PathVariable int friendId){
+    public User addFriend(@PathVariable int id, @PathVariable int friendId) {
         log.info("PUT: /users/{}/friends/{}", id, friendId);
         return userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public User deleteFriend(@PathVariable int id, @PathVariable int friendId){
+    public User deleteFriend(@PathVariable int id, @PathVariable int friendId) {
         log.info("DELETE: /users/{}/friends/{}", id, friendId);
         return userService.deleteFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable int id){
+    public List<User> getFriends(@PathVariable int id) {
         log.info("GET: /users/{}/friends", id);
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{friendId}")
-    public List<User> getMutualFriends(@PathVariable int id, @PathVariable int friendId){
+    public List<User> getMutualFriends(@PathVariable int id, @PathVariable int friendId) {
         log.info("GET: /users/{}/friends/common/{}", id, friendId);
         return userService.getMutualFriends(id, friendId);
     }
