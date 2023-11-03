@@ -88,10 +88,6 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        if (!userStorage.containsUser(user)) {
-            log.info("Update failed: User not found");
-            throw new DataNotFoundException("User not found");
-        }
         log.info("User updated: {}", user);
         return userStorage.updateUser(user);
     }

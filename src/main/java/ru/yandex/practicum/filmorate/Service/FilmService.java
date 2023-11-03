@@ -51,7 +51,6 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(Integer count) {
-        if (count == null) count = 10;
         if (count > filmStorage.getFilms().size()) {
             count = filmStorage.getFilms().size();
         }
