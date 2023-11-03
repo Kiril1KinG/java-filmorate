@@ -13,4 +13,8 @@ public interface FilmStorage {
     List<Film> getFilms();
 
     Film getFilmById(int id);
+
+    boolean containsFilm(Film film);
+
+    boolean containsFilmById(int id);
 }

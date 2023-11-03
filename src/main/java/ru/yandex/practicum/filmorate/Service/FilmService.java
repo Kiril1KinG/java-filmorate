@@ -23,11 +23,11 @@ public class FilmService {
     private final UserStorage userStorage;
 
     public Film addLike(int filmId, int userId) {
-        if (!filmStorage.getFilms().contains(filmStorage.getFilmById(filmId))) {
+        if (!filmStorage.containsFilmById(filmId)) {
             log.info("Add like failed: Incorrect film id");
             throw new DataNotFoundException("Incorrect film id");
         }
-        if (!userStorage.getUsers().contains(userStorage.getUserById(userId))) {
+        if (!userStorage.containsUserById(userId)) {
             log.info("Add like failed: Incorrect user id");
             throw new DataNotFoundException("Incorrect user id");
         }
@@ -37,11 +37,11 @@ public class FilmService {
     }
 
     public Film deleteLike(int filmId, int userId) {
-        if (!filmStorage.getFilms().contains(filmStorage.getFilmById(filmId))) {
+        if (!filmStorage.containsFilmById(filmId)) {
             log.info("Delete like failed: Incorrect film id");
             throw new DataNotFoundException("Incorrect film id");
         }
-        if (!userStorage.getUsers().contains(userStorage.getUserById(userId))) {
+        if (!userStorage.containsUserById(userId)) {
             log.info("Delete like failed: Incorrect user id");
             throw new DataNotFoundException("Incorrect user id");
         }
@@ -78,7 +78,7 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        if (!filmStorage.getFilms().contains(film)) {
+        if (!filmStorage.containsFilm(film)) {
             log.info("Update film failed: Film not found");
             throw new DataNotFoundException("Film not found");
         }

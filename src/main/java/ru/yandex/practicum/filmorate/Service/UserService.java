@@ -20,11 +20,11 @@ public class UserService {
     private final UserStorage userStorage;
 
     public User addFriend(int userId, int friendId) {
-        if (!userStorage.getUsers().contains(userStorage.getUserById(friendId))) {
+        if (!userStorage.containsUserById(userId)) {
             log.info("Add friend failed: Incorrect friend id");
             throw new DataNotFoundException("Incorrect friend id");
         }
-        if (!userStorage.getUsers().contains(userStorage.getUserById(friendId))) {
+        if (!userStorage.containsUserById(friendId)) {
             log.info("Add friend failed: Incorrect user id");
             throw new DataNotFoundException("Incorrect user id");
         }
@@ -35,11 +35,11 @@ public class UserService {
     }
 
     public User deleteFriend(int userId, int friendId) {
-        if (!userStorage.getUsers().contains(userStorage.getUserById(friendId))) {
+        if (!userStorage.containsUserById(userId)) {
             log.info("Delete friend failed: Incorrect friend id");
             throw new DataNotFoundException("Incorrect friend id");
         }
-        if (!userStorage.getUsers().contains(userStorage.getUserById(friendId))) {
+        if (!userStorage.containsUserById(friendId)) {
             log.info("Delete friend failed: Incorrect user id");
             throw new DataNotFoundException("Incorrect user id");
         }
@@ -88,7 +88,7 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        if (!userStorage.getUsers().contains(user)) {
+        if (!userStorage.containsUser(user)) {
             log.info("Update failed: User not found");
             throw new DataNotFoundException("User not found");
         }
@@ -102,7 +102,7 @@ public class UserService {
     }
 
     public User getUserById(int id) {
-        if (!userStorage.getUsers().contains(userStorage.getUserById(id))) {
+        if (!userStorage.containsUserById(id)) {
             log.info("Get user failed: User not found");
             throw new DataNotFoundException("User not found");
         }
