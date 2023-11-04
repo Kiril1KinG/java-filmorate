@@ -50,12 +50,8 @@ public class UserService {
     }
 
     public List<User> getMutualFriends(int userId, int friendId) {
-        final List<Integer> mutualFriendsIds = new ArrayList<>();
-        for (int id : userStorage.getUserById(userId).getFriends()) {
-            if (userStorage.getUserById(friendId).getFriends().contains(id)) {
-                mutualFriendsIds.add(id);
-            }
-        }
+        final List<Integer> mutualFriendsIds = new ArrayList<>(userStorage.getUserById(userId).getFriends());
+        mutualFriendsIds.retainAll(userStorage.getUserById(friendId).getFriends());
         List<User> mutualFriends = mutualFriendsIds.stream()
                 .map(userStorage::getUserById)
                 .collect(Collectors.toList());
