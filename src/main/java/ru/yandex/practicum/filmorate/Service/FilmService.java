@@ -11,7 +11,9 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,24 +52,16 @@ public class FilmService {
         return filmStorage.getFilmById(filmId);
     }
 
-    public List<Film> getTopFilms(Integer count) {
+    public List<Film> getTopFilms(int count) {
         if (count > filmStorage.getFilms().size()) {
             count = filmStorage.getFilms().size();
         }
-        ArrayList<Film> sortedFilms = new ArrayList<>();
-        for (Film film : filmStorage.getFilms()) {
-            if (sortedFilms.isEmpty()) {
-                sortedFilms.add(film);
-                continue;
-            }
-            if (film.getLikes().size() > sortedFilms.get(0).getLikes().size()) {
-                sortedFilms.add(0, film);
-            } else {
-                sortedFilms.add(film);
-            }
-        }
-        log.info("Top films received: {}", sortedFilms.subList(0, count));
-        return sortedFilms.subList(0, count);
+        List<Film> sortedFilms = filmStorage.getFilms().stream()
+                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
+                .limit(count)
+                .collect(Collectors.toList());
+        log.info("Top films received: {}", sortedFilms);
+        return sortedFilms;
     }
 
     public Film addFilm(Film film) {
@@ -98,7 +92,7 @@ public class FilmService {
     }
 
     public Film getFilmById(int id) {
-        if (filmStorage.getFilms().size() < id) {
+        if (!filmStorage.containsFilmById(id)) {
             log.info("Get film by id failed: Incorrect film id");
             throw new DataNotFoundException("Incorrect film id");
         }
