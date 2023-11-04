@@ -68,9 +68,6 @@ public class UserService {
     }
 
     private void validate(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
         if (user.getLogin().contains(" ")) {
             log.info("Validation failed: Login cannot contain spaces");
             throw new ValidationException("Login cannot contain spaces");
