@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
@@ -22,14 +21,12 @@ public class InMemoryUserStorage implements UserStorage {
     public User addUser(User user) {
         users.put(++currentId, user);
         user.setId(currentId);
-        log.info("User created: {}", user);
         return user;
     }
 
     @Override
     public User updateUser(User user) {
         users.put(user.getId(), user);
-        log.info("User updated: {}", user);
         return user;
     }
 
