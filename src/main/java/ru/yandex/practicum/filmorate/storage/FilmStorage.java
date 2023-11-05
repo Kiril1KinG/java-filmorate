@@ -14,7 +14,5 @@ public interface FilmStorage {
 
     Film getFilmById(int id);
 
-    boolean containsFilm(Film film);
-
     boolean containsFilmById(int id);
 }

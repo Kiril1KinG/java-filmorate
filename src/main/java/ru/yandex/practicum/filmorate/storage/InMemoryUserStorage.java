@@ -47,11 +47,6 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public boolean containsUser(User user) {
-        return users.containsValue(user);
-    }
-
-    @Override
     public boolean containsUserById(int id) {
         return users.containsKey(id);
     }

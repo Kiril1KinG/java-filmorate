@@ -67,7 +67,7 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        if (!filmStorage.containsFilm(film)) {
+        if (!filmStorage.containsFilmById(film.getId())) {
             log.info("Update film failed: Film not found");
             throw new DataNotFoundException("Film not found");
         }

@@ -14,7 +14,5 @@ public interface UserStorage {
 
     User getUserById(int id);
 
-    boolean containsUser(User user);
-
     boolean containsUserById(int id);
 }
