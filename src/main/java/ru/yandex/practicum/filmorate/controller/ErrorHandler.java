@@ -17,21 +17,21 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleDataNotFound(DataNotFoundException e) {
-        log.info("Error \"Data not found\" handled: {}", e.getMessage());
+        log.info(e.getMessage(), e);
         return Map.of("Data not found", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleDataNotFound(ValidationException e) {
-        log.info("Error \"Validation failed\" handled: {}", e.getMessage());
+        log.info(e.getMessage(), e);;
         return Map.of("Validation failed", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleDataNotFound(RuntimeException e) {
-        log.info("Error \"Server error\" handled: {}", e.getMessage());
+        log.info(e.getMessage(), e);;
         return Map.of("Server error:", e.getMessage());
     }
 }
