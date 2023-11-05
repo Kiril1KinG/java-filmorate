@@ -52,9 +52,6 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(int count) {
-        if (count > filmStorage.getFilms().size()) {
-            count = filmStorage.getFilms().size();
-        }
         List<Film> sortedFilms = filmStorage.getFilms().stream()
                 .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
                 .limit(count)
