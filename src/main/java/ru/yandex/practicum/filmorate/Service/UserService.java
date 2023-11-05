@@ -76,6 +76,9 @@ public class UserService {
 
     public User addUser(User user) {
         validate(user);
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         log.info("User added: {}", user);
         return userStorage.addUser(user);
     }
