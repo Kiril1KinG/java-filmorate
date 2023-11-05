@@ -28,10 +28,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        if (!users.containsValue(user)) {
-            log.info("Update failed: User not found");
-            throw new DataNotFoundException("User not found");
-        }
         users.put(user.getId(), user);
         log.info("User updated: {}", user);
         return user;
