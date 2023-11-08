@@ -1,7 +1,7 @@
 # java-filmorate
 Template repository for Filmorate project.
 
-![](../../Desktop/ER-диаграмма.png)
+![](ER-диаграмма.png)
 ### Ссылочка на ER-диаграмму https://dbdesigner.page.link/86uxnNnu6S44UeRp6
 ### 1. Пример получения ТОП 10 фильмов:
 #### SELECT title FROM Film WHERE film_id IN (SELECT film_id, COUNT(user_id) AS likes FROM Like GROUP BY film_id ORDER BY likes DESC LIMIT 10);
