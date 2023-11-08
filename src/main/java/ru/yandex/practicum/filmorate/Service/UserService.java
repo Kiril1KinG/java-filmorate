@@ -21,12 +21,10 @@ public class UserService {
 
     public User addFriend(int userId, int friendId) {
         if (!userStorage.containsUserById(userId)) {
-            log.info("Add friend failed: Incorrect friend id");
-            throw new DataNotFoundException("Incorrect friend id");
+            throw new DataNotFoundException("Add friend failed: Incorrect friend id");
         }
         if (!userStorage.containsUserById(friendId)) {
-            log.info("Add friend failed: Incorrect user id");
-            throw new DataNotFoundException("Incorrect user id");
+            throw new DataNotFoundException("Add friend failed: Incorrect user id");
         }
         userStorage.getUserById(userId).getFriends().add(friendId);
         userStorage.getUserById(friendId).getFriends().add(userId);
@@ -36,12 +34,10 @@ public class UserService {
 
     public User deleteFriend(int userId, int friendId) {
         if (!userStorage.containsUserById(userId)) {
-            log.info("Delete friend failed: Incorrect friend id");
-            throw new DataNotFoundException("Incorrect friend id");
+            throw new DataNotFoundException("Delete friend failed: Incorrect friend id");
         }
         if (!userStorage.containsUserById(friendId)) {
-            log.info("Delete friend failed: Incorrect user id");
-            throw new DataNotFoundException("Incorrect user id");
+            throw new DataNotFoundException("Delete friend failed: Incorrect user id");
         }
         userStorage.getUserById(userId).getFriends().add(friendId);
         userStorage.getUserById(friendId).getFriends().add(userId);
@@ -69,8 +65,7 @@ public class UserService {
 
     private void validate(User user) {
         if (user.getLogin().contains(" ")) {
-            log.info("Validation failed: Login cannot contain spaces");
-            throw new ValidationException("Login cannot contain spaces");
+            throw new ValidationException("Validation failed: Login cannot contain spaces");
         }
     }
 
@@ -85,8 +80,7 @@ public class UserService {
 
     public User updateUser(User user) {
         if (!userStorage.containsUserById(user.getId())) {
-            log.info("Update failed: User not found");
-            throw new DataNotFoundException("User not found");
+            throw new DataNotFoundException("Update failed: User not found");
         }
         log.info("User updated: {}", user);
         return userStorage.updateUser(user);
@@ -99,8 +93,7 @@ public class UserService {
 
     public User getUserById(int id) {
         if (!userStorage.containsUserById(id)) {
-            log.info("Get user failed: User not found");
-            throw new DataNotFoundException("User not found");
+            throw new DataNotFoundException("Get user failed: User not found");
         }
         log.info("User by id received: {}", userStorage.getUserById(id));
         return userStorage.getUserById(id);

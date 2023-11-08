@@ -26,12 +26,10 @@ public class FilmService {
 
     public Film addLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
-            log.info("Add like failed: Incorrect film id");
-            throw new DataNotFoundException("Incorrect film id");
+            throw new DataNotFoundException("Add like failed: Incorrect film id");
         }
         if (!userStorage.containsUserById(userId)) {
-            log.info("Add like failed: Incorrect user id");
-            throw new DataNotFoundException("Incorrect user id");
+            throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
         filmStorage.getFilmById(filmId).getLikes().add(userId);
         log.info("Like added: {}", filmStorage.getFilmById(filmId));
@@ -40,12 +38,10 @@ public class FilmService {
 
     public Film deleteLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
-            log.info("Delete like failed: Incorrect film id");
-            throw new DataNotFoundException("Incorrect film id");
+            throw new DataNotFoundException("Delete like failed: Incorrect film id");
         }
         if (!userStorage.containsUserById(userId)) {
-            log.info("Delete like failed: Incorrect user id");
-            throw new DataNotFoundException("Incorrect user id");
+            throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
         filmStorage.getFilmById(filmId).getLikes().remove(userId);
         log.info("Like deleted: {}", filmStorage.getFilmById(filmId));
@@ -69,8 +65,7 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         if (!filmStorage.containsFilmById(film.getId())) {
-            log.info("Update film failed: Film not found");
-            throw new DataNotFoundException("Film not found");
+            throw new DataNotFoundException("Update film failed: Film not found");
         }
         log.info("Film updated: {}", film);
         return filmStorage.updateFilm(film);
@@ -83,15 +78,13 @@ public class FilmService {
 
     private void validateReleaseDate(Film film) {
         if (film.getReleaseDate().isBefore(FIRST_FILM)) {
-            log.info("Validation failed: Incorrect release date");
-            throw new ValidationException("Incorrect release date");
+            throw new ValidationException("Validation failed: Incorrect release date");
         }
     }
 
     public Film getFilmById(int id) {
         if (!filmStorage.containsFilmById(id)) {
-            log.info("Get film by id failed: Incorrect film id");
-            throw new DataNotFoundException("Incorrect film id");
+            throw new DataNotFoundException("Get film by id failed: Incorrect film id");
         }
         log.info("Film by id received: {}", filmStorage.getFilmById(id));
         return filmStorage.getFilmById(id);
