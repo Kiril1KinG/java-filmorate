@@ -1,19 +1,19 @@
 package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class Film {
 
     private int id;
@@ -31,6 +31,11 @@ public class Film {
     private long duration;
 
     private final Set<Integer> likes = new HashSet<>();
+
+    private final List<Genre> genres = new ArrayList<>();
+
+    @NotNull
+    private final Rating rating;
 
     @Override
     public boolean equals(Object o) {

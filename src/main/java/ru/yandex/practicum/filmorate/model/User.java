@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import javax.validation.constraints.PastOrPresent;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class User {
 
     private int id;
