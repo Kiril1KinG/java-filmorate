@@ -18,12 +18,12 @@ public class RatingController {
     private final RatingDbStorage ratingDbStorage;
 
     @GetMapping
-    public List<Mpa> getAllRatings(){
+    public List<Mpa> getAllRatings() {
         return ratingDbStorage.getAllRatings();
     }
 
     @GetMapping("/{id}")
-    public Mpa getRatingById(@PathVariable int id){
+    public Mpa getRatingById(@PathVariable int id) {
         return ratingDbStorage.getRatingById(id);
     }
 }

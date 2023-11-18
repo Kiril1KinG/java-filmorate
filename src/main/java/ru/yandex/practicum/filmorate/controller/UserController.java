@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import java.util.List;
-import javax.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Service.UserService;
 import ru.yandex.practicum.filmorate.model.User;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @Slf4j
 @RestController
