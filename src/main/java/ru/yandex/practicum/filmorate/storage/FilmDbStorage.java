@@ -92,7 +92,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private RowMapper<Film> filmRowMapper() {
-        return ((rs, rowNum) -> new Film( //здесь мапятся фильмы только с собственными полями без зависиостей
+        return ((rs, rowNum) -> new Film(
                 rs.getInt("film_id"),
                 rs.getString("name"),
                 rs.getString("description"),
@@ -106,7 +106,7 @@ public class FilmDbStorage implements FilmStorage {
                 "JOIN genre AS g ON fg.genre_id = g.genre_id " +
                 "WHERE film_id = ?";
         String likesForFilm = "SELECT * FROM \"like\" WHERE film_id = ?";
-        for (Film film : films) { //процесс обогащения данных, здесь заполняются поля-зависимости
+        for (Film film : films) {
             Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
                     (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
                     ), film.getId());
