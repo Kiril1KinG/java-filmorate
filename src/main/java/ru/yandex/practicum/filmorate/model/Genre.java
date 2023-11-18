@@ -1,11 +1,33 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
-@RequiredArgsConstructor
-@Builder
+import java.util.Objects;
+
+
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString
 public class Genre {
 
-    private final String name;
+    private int id;
+    private String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Genre genre = (Genre) o;
+        return id == genre.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

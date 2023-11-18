@@ -20,6 +20,7 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getFilms() {
+        log.info("GET: /films");
         return filmService.getFilms();
     }
 

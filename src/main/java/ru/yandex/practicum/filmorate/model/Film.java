@@ -6,14 +6,14 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
-@Data
+@Getter
+@Setter
+@RequiredArgsConstructor
 @AllArgsConstructor
-@Builder
+@ToString
 public class Film {
 
     private int id;
@@ -30,12 +30,20 @@ public class Film {
     @Min(1)
     private long duration;
 
-    private final Set<Integer> likes = new HashSet<>();
+    private Set<Integer> likes = new HashSet<>();
 
-    private final List<Genre> genres = new ArrayList<>();
+    private Set<Genre> genres = new HashSet<>();
 
-    @NotNull
-    private final Rating rating;
+    private Mpa mpa;
+
+    public Film(int id, String name, String description, LocalDate releaseDate, long duration, Mpa mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -2,11 +2,14 @@ package ru.yandex.practicum.filmorate.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikeDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
@@ -23,7 +26,10 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final LikeDbStorage likeDbStorage;
 
+
+    //TODO likeDAO????
     public Film addLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
             throw new DataNotFoundException("Add like failed: Incorrect film id");
@@ -31,9 +37,10 @@ public class FilmService {
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
-        filmStorage.getFilmById(filmId).getLikes().add(userId);
-        log.info("Like added: {}", filmStorage.getFilmById(filmId));
-        return filmStorage.getFilmById(filmId);
+        likeDbStorage.addLike(filmId, userId);
+        Film film = filmStorage.getFilmById(filmId);
+        log.info("Like added: {}", film);
+        return film;
     }
 
     public Film deleteLike(int filmId, int userId) {
@@ -43,9 +50,10 @@ public class FilmService {
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
-        filmStorage.getFilmById(filmId).getLikes().remove(userId);
-        log.info("Like deleted: {}", filmStorage.getFilmById(filmId));
-        return filmStorage.getFilmById(filmId);
+        likeDbStorage.deleteLike(filmId, userId);
+        Film film = filmStorage.getFilmById(filmId);
+        log.info("Like deleted: {}", film);
+        return film;
     }
 
     public List<Film> getTopFilms(int count) {
@@ -72,8 +80,9 @@ public class FilmService {
     }
 
     public List<Film> getFilms() {
-        log.info("Films received: {}", filmStorage.getFilms());
-        return filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms();
+        log.info("Films received: {}", films);
+        return films;
     }
 
     private void validateReleaseDate(Film film) {
@@ -83,11 +92,9 @@ public class FilmService {
     }
 
     public Film getFilmById(int id) {
-        if (!filmStorage.containsFilmById(id)) {
-            throw new DataNotFoundException("Get film by id failed: Incorrect film id");
-        }
-        log.info("Film by id received: {}", filmStorage.getFilmById(id));
-        return filmStorage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
+        log.info("Film by id received: {}", film);
+        return film;
     }
 
 }

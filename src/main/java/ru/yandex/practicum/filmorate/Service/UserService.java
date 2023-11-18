@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendshipDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final FriendshipDbStorage friendshipDbStorage;
 
     public User addFriend(int userId, int friendId) {
         if (!userStorage.containsUserById(userId)) {
@@ -26,10 +28,10 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Add friend failed: Incorrect user id");
         }
-        userStorage.getUserById(userId).getFriends().add(friendId);
-        userStorage.getUserById(friendId).getFriends().add(userId);
-        log.info("Friend added: {}", userStorage.getUserById(userId));
-        return userStorage.getUserById(userId);
+        friendshipDbStorage.addFriend(userId, friendId);
+        User u = userStorage.getUserById(userId);
+        log.info("Friend added: {}", u);
+        return u;
     }
 
     public User deleteFriend(int userId, int friendId) {
@@ -39,15 +41,17 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Delete friend failed: Incorrect user id");
         }
-        userStorage.getUserById(userId).getFriends().add(friendId);
-        userStorage.getUserById(friendId).getFriends().add(userId);
-        log.info("Friend deleted: {}", userStorage.getUserById(userId));
-        return userStorage.getUserById(userId);
+        friendshipDbStorage.deleteFriend(userId, friendId);
+        User u = userStorage.getUserById(userId);
+        log.info("Friend deleted: {}", u);
+        return u;
     }
 
     public List<User> getMutualFriends(int userId, int friendId) {
-        final List<Integer> mutualFriendsIds = new ArrayList<>(userStorage.getUserById(userId).getFriends());
-        mutualFriendsIds.retainAll(userStorage.getUserById(friendId).getFriends());
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+        List<Integer> mutualFriendsIds = new ArrayList<>(user.getFriends());
+        mutualFriendsIds.retainAll(friend.getFriends());
         List<User> mutualFriends = mutualFriendsIds.stream()
                 .map(userStorage::getUserById)
                 .collect(Collectors.toList());
@@ -74,29 +78,33 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        log.info("User added: {}", user);
-        return userStorage.addUser(user);
+        User u = userStorage.addUser(user);
+        log.info("User added: {}", u);
+        return u;
     }
 
     public User updateUser(User user) {
         if (!userStorage.containsUserById(user.getId())) {
             throw new DataNotFoundException("Update failed: User not found");
         }
-        log.info("User updated: {}", user);
-        return userStorage.updateUser(user);
+        User u = userStorage.updateUser(user);
+        log.info("User updated: {}", u);
+        return u;
     }
 
     public List<User> getUsers() {
-        log.info("Users received: {}", userStorage.getUsers());
-        return userStorage.getUsers();
+        List<User> users = userStorage.getUsers();
+        log.info("Users received: {}", users);
+        return users;
     }
 
     public User getUserById(int id) {
         if (!userStorage.containsUserById(id)) {
             throw new DataNotFoundException("Get user failed: User not found");
         }
-        log.info("User by id received: {}", userStorage.getUserById(id));
-        return userStorage.getUserById(id);
+        User u = userStorage.getUserById(id);
+        log.info("User by id received: {}", u);
+        return u;
     }
 
 
