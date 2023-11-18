@@ -16,18 +16,18 @@ public class RatingDbStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Mpa> getAllRatings() {
-        return jdbcTemplate.query("SELECT * FROM rating", RatingRowMapper());
+        return jdbcTemplate.query("SELECT * FROM rating", ratingRowMapper());
     }
 
     public Mpa getRatingById(int id) {
-        List<Mpa> mpa = jdbcTemplate.query("SELECT * FROM rating WHERE rating_id = ?", RatingRowMapper(), id);
+        List<Mpa> mpa = jdbcTemplate.query("SELECT * FROM rating WHERE rating_id = ?", ratingRowMapper(), id);
         if (mpa.size() != 1) {
             throw new DataNotFoundException("Rating not found: Incorrect id");
         }
         return mpa.get(0);
     }
 
-    private RowMapper<Mpa> RatingRowMapper() {
+    private RowMapper<Mpa> ratingRowMapper() {
         return ((rs, rowNum) -> new Mpa(
                 rs.getInt("rating_id"),
                 rs.getString("name")
