@@ -15,11 +15,11 @@ public class GenreDbStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public List<Genre> getAllGenres() {
+    public List<Genre> getAllGenres(){
         return jdbcTemplate.query("SELECT * FROM genre;", genreRowMapper());
     }
 
-    public Genre getGenreById(int id) {
+    public Genre getGenreById(int id){
         List<Genre> genre = jdbcTemplate.query("SELECT * FROM genre WHERE genre_id = ?", genreRowMapper(), id);
         if (genre.size() != 1) {
             throw new DataNotFoundException("Genre not found: Incorrect id");
@@ -27,10 +27,7 @@ public class GenreDbStorage {
         return genre.get(0);
     }
 
-    private RowMapper<Genre> genreRowMapper() {
-        return (rs, rowNum) -> new Genre(
-                rs.getInt("genre_id"),
-                rs.getString("name")
-        );
+    private RowMapper<Genre> genreRowMapper(){
+        return (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name"));
     }
 }
