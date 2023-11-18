@@ -5,14 +5,16 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -115,10 +117,10 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void validateFilm(Film film, String operation) {
-        List<Integer> rating_id = jdbcTemplate.query("SELECT rating_id FROM rating WHERE rating_id = ?",
+        List<Integer> ratingId = jdbcTemplate.query("SELECT rating_id FROM rating WHERE rating_id = ?",
                 ((rs, rowNum) -> rs.getInt("rating_id")),
                 film.getMpa().getId());
-        if (rating_id.size() != 1) {
+        if (ratingId.size() != 1) {
             throw new ValidationException(operation + " film failed: Incorrect rating");
         }
         List<Integer> genresId = jdbcTemplate.query("SELECT * FROM genre;",
