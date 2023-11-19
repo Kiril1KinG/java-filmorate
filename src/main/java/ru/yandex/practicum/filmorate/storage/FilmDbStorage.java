@@ -62,7 +62,7 @@ public class FilmDbStorage implements FilmStorage {
                     film.getDuration(), film.getMpa().getId(), film.getId());
             updateFilmGenres(film);
             return film;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Update film failed: film not found");
         }
     }
@@ -86,11 +86,11 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM film AS f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE f.film_id = ?";
-        try{
+        try {
             Film film = jdbcTemplate.queryForObject(query, this::mapFilm, id);
             enrichFilms(List.of(film));
             return film;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Get film failed: Incorrect id");
         }
     }
@@ -100,7 +100,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM film WHERE film_id = ?", Long.class, id);
             return count == 1;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             return false;
         }
     }
@@ -142,7 +142,7 @@ public class FilmDbStorage implements FilmStorage {
                     throw new DataNotFoundException(operation + " film failed: Incorrect genres");
                 }
             }
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new ValidationException(operation + " film failed: Incorrect rating");
         }
     }
@@ -157,12 +157,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public void addLike(int filmId, int userId) {
-            Integer like = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"like\" WHERE film_id = ? AND user_id = ?",
-                    Integer.class, filmId, userId);
-            if (like != 0){
-                throw new RuntimeException("Add like failed: like already exists");
-            }
-            jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
+        Integer like = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"like\" WHERE film_id = ? AND user_id = ?",
+                Integer.class, filmId, userId);
+        if (like != 0) {
+            throw new RuntimeException("Add like failed: like already exists");
+        }
+        jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {

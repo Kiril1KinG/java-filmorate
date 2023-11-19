@@ -35,11 +35,11 @@ public class UserDbStorage implements UserStorage {
             PreparedStatement ps = con
                     .prepareStatement("INSERT INTO \"user\" (email, login, name, birthday) VALUES (?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
-           ps.setString(1, user.getEmail());
-           ps.setString(2, user.getLogin());
-           ps.setString(3, user.getName());
-           ps.setDate(4, Date.valueOf(user.getBirthday()));
-           return ps;
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.getLogin());
+            ps.setString(3, user.getName());
+            ps.setDate(4, Date.valueOf(user.getBirthday()));
+            return ps;
         }, keyHolder);
         user.setId(keyHolder.getKey().intValue());
         return user;
@@ -53,7 +53,7 @@ public class UserDbStorage implements UserStorage {
             jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
                     user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
             return user;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Update user failed: user not found");
         }
     }
@@ -68,10 +68,10 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User getUserById(int id) {
         try {
-            User user = jdbcTemplate.queryForObject("SELECT * FROM \"user\" WHERE user_id = ?",  this::mapUser, id);
+            User user = jdbcTemplate.queryForObject("SELECT * FROM \"user\" WHERE user_id = ?", this::mapUser, id);
             enrichUsers(List.of(user));
             return user;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("User not found: Incorrect id");
         }
     }
@@ -81,7 +81,7 @@ public class UserDbStorage implements UserStorage {
         try {
             Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?", Long.class, id);
             return count == 1;
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             return false;
         }
     }
@@ -113,7 +113,7 @@ public class UserDbStorage implements UserStorage {
             }
             jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, friendship_status) VALUES (?, ?, ?)",
                     userId, friendId, isMutualFriendship(userId, friendId));
-        } catch (EmptyResultDataAccessException e){
+        } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Add friend failed: friendship already exists");
         }
     }
