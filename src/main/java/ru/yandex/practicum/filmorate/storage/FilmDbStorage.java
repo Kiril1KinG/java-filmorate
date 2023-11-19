@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -11,11 +13,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Primary
@@ -29,12 +32,19 @@ public class FilmDbStorage implements FilmStorage {
         if (containsFilmById(film.getId())) {
             throw new DataNotFoundException("Add film failed: film already exists");
         }
-        jdbcTemplate.update("INSERT INTO film (name, description, release_date, duration, rating_id) " +
-                        "VALUES (?, ?, ?, ?, ?)",
-                film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
-        List<Integer> id = jdbcTemplate.query("SELECT film_id FROM film WHERE name = ? AND release_date = ?",
-                (rs, rowNum) -> rs.getInt("film_id"), film.getName(), film.getReleaseDate());
-        film.setId(id.get(0));
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(con -> {
+            PreparedStatement ps = con
+                    .prepareStatement("INSERT INTO film (name, description, release_date, duration, rating_id) VALUES (?, ?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, film.getName());
+            ps.setString(2, film.getDescription());
+            ps.setDate(3, Date.valueOf(film.getReleaseDate()));
+            ps.setLong(4, film.getDuration());
+            ps.setInt(5, film.getMpa().getId());
+            return ps;
+        }, keyHolder);
+        film.setId(keyHolder.getKey().intValue());
         updateFilmGenres(film);
         return film;
     }

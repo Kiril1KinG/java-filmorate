@@ -4,10 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -23,11 +28,18 @@ public class UserDbStorage implements UserStorage {
         if (containsUserById(user.getId())) {
             throw new DataNotFoundException("Add user failed: user already exists");
         }
-        jdbcTemplate.update("INSERT INTO \"user\" (email, login, name, birthday) VALUES (?, ?, ?, ?)",
-                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
-        List<Integer> id = jdbcTemplate.query("SELECT user_id FROM \"user\" WHERE login = ?",
-                (rs, rowNum) -> rs.getInt("user_id"), user.getLogin());
-        user.setId(id.get(0));
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(con -> {
+            PreparedStatement ps = con
+                    .prepareStatement("INSERT INTO \"user\" (email, login, name, birthday) VALUES (?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+           ps.setString(1, user.getEmail());
+           ps.setString(2, user.getLogin());
+           ps.setString(3, user.getName());
+           ps.setDate(4, Date.valueOf(user.getBirthday()));
+           return ps;
+        }, keyHolder);
+        user.setId(keyHolder.getKey().intValue());
         return user;
     }
 
