@@ -84,9 +84,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public boolean containsFilmById(int id) {
-        List<Integer> film = jdbcTemplate.query("SELECT * FROM film WHERE film_id = ?",
-                (rs, rowNum) -> rs.getInt("film_id"), id);
-        return film.size() == 1;
+        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM film WHERE film_id = ?", Long.class, id);
+        return count == 1;
     }
 
     private RowMapper<Film> filmRowMapper() {

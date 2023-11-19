@@ -63,9 +63,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public boolean containsUserById(int id) {
-        List<Integer> user = jdbcTemplate.query("SELECT * FROM \"user\" WHERE user_id = ?",
-                (rs, rowNum) -> rs.getInt("user_id"), id);
-        return user.size() == 1;
+        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?", Long.class, id);
+        return count == 1;
     }
 
     private RowMapper<User> userRowMapper() {
