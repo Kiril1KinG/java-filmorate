@@ -20,9 +20,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-        List<Integer> userId = jdbcTemplate.query("SELECT * FROM \"user\" WHERE login = ?;",
-                ((rs, rowNum) -> rs.getInt("user_id")), user.getLogin());
-        if (userId.size() != 0) {
+        if (containsUserById(user.getId())) {
             throw new DataNotFoundException("Add user failed: user already exists");
         }
         jdbcTemplate.update("INSERT INTO \"user\" (email, login, name, birthday) VALUES (?, ?, ?, ?)",

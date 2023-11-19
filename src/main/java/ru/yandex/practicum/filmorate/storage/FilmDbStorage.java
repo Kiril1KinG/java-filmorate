@@ -27,9 +27,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         validateFilm(film, "Add");
-        List<Integer> filmId = jdbcTemplate.query("SELECT * FROM film WHERE name = ? AND release_date = ?",
-                ((rs, rowNum) -> rs.getInt("film_id")), film.getName(), film.getReleaseDate());
-        if (filmId.size() != 0) {
+        if (containsFilmById(film.getId())) {
             throw new DataNotFoundException("Add film failed: film already exists");
         }
         jdbcTemplate.update("INSERT INTO film (name, description, release_date, duration, rating_id) " +
