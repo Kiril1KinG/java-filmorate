@@ -64,12 +64,14 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
+        filmStorage.validateFilm(film, "Add");
         validateReleaseDate(film);
         log.info("Film added: {}", film);
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
+        filmStorage.validateFilm(film, "Update");
         if (!filmStorage.containsFilmById(film.getId())) {
             throw new DataNotFoundException("Update film failed: Film not found");
         }

@@ -15,4 +15,6 @@ public interface FilmStorage {
     Film getFilmById(int id);
 
     boolean containsFilmById(int id);
+
+    void validateFilm(Film film, String operation);
 }

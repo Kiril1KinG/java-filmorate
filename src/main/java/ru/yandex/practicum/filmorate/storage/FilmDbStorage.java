@@ -26,7 +26,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        validateFilm(film, "Add");
         if (containsFilmById(film.getId())) {
             throw new DataNotFoundException("Add film failed: film already exists");
         }
