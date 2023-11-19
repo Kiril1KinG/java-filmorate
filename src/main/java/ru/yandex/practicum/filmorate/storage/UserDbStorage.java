@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -12,6 +11,8 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,7 +58,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUsers() {
-        List<User> users = jdbcTemplate.query("SELECT * FROM \"user\"", userRowMapper());
+        List<User> users = jdbcTemplate.query("SELECT * FROM \"user\"", this::mapUser);
         enrichUsers(users);
         return users;
     }
@@ -65,7 +66,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User getUserById(int id) {
         List<User> user = jdbcTemplate.query("SELECT * FROM \"user\" WHERE user_id = ?",
-                userRowMapper(), id);
+                this::mapUser, id);
         enrichUsers(user);
         if (user.size() != 1) {
             throw new DataNotFoundException("Film not found: Incorrect id");
@@ -79,12 +80,14 @@ public class UserDbStorage implements UserStorage {
         return count == 1;
     }
 
-    private RowMapper<User> userRowMapper() {
-        return ((rs, rowNum) -> new User(rs.getInt("user_id"),
-                rs.getString("email"),
-                rs.getString("login"),
-                rs.getString("name"),
-                rs.getDate("birthday").toLocalDate()));
+    private User mapUser(ResultSet rs, int rowNum) throws SQLException {
+        User user = new User();
+        user.setId(rs.getInt("user_id"));
+        user.setEmail(rs.getString("email"));
+        user.setLogin(rs.getString("login"));
+        user.setName(rs.getString("name"));
+        user.setBirthday(rs.getDate("birthday").toLocalDate());
+        return user;
     }
 
     private void enrichUsers(Collection<User> users) {

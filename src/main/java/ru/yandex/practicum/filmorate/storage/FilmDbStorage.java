@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -15,6 +14,8 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashSet;
@@ -71,7 +72,7 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM film f " +
                 "JOIN rating r ON f.rating_id = r.rating_id " +
                 "ORDER BY film_id;";
-        List<Film> films = jdbcTemplate.query(query, filmRowMapper());
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm);
         enrichFilms(films);
         return films;
     }
@@ -83,7 +84,7 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM film AS f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE f.film_id = ?";
-        List<Film> film = jdbcTemplate.query(query, filmRowMapper(), id);
+        List<Film> film = jdbcTemplate.query(query,this::mapFilm, id);
         if (film.size() != 1) {
             throw new DataNotFoundException("Film not found: Incorrect id");
         }
@@ -97,14 +98,15 @@ public class FilmDbStorage implements FilmStorage {
         return count == 1;
     }
 
-    private RowMapper<Film> filmRowMapper() {
-        return ((rs, rowNum) -> new Film(
-                rs.getInt("film_id"),
-                rs.getString("name"),
-                rs.getString("description"),
-                rs.getDate("release_date").toLocalDate(),
-                rs.getInt("duration"),
-                new Mpa(rs.getInt("rating_id"), rs.getString("rating_name"))));
+    private Film mapFilm(ResultSet rs, int rowNum) throws SQLException {
+        Film film = new Film();
+        film.setId(rs.getInt("film_id"));
+        film.setName(rs.getString("name"));
+        film.setDescription(rs.getString("description"));
+        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+        film.setDuration(rs.getInt("duration"));
+        film.setMpa(new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")));
+        return film;
     }
 
     private void enrichFilms(Collection<Film> films) {
