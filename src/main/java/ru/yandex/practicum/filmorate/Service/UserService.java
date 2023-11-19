@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FriendshipDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
-    private final FriendshipDbStorage friendshipDbStorage;
 
     public User addFriend(int userId, int friendId) {
         if (!userStorage.containsUserById(userId)) {
@@ -28,7 +26,7 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Add friend failed: Incorrect user id");
         }
-        friendshipDbStorage.addFriend(userId, friendId);
+        userStorage.addFriend(userId, friendId);
         User u = userStorage.getUserById(userId);
         log.info("Friend added: {}", u);
         return u;
@@ -41,7 +39,7 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Delete friend failed: Incorrect user id");
         }
-        friendshipDbStorage.deleteFriend(userId, friendId);
+        userStorage.deleteFriend(userId, friendId);
         User u = userStorage.getUserById(userId);
         log.info("Friend deleted: {}", u);
         return u;
