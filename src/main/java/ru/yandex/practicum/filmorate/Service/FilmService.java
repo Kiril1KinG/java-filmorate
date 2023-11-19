@@ -27,8 +27,7 @@ public class FilmService {
     private final LikeDbStorage likeDbStorage;
 
 
-    //TODO likeDAO????
-    public Film addLike(int filmId, int userId) {
+    public void addLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
             throw new DataNotFoundException("Add like failed: Incorrect film id");
         }
@@ -38,10 +37,9 @@ public class FilmService {
         likeDbStorage.addLike(filmId, userId);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like added: {}", film);
-        return film;
     }
 
-    public Film deleteLike(int filmId, int userId) {
+    public void deleteLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
             throw new DataNotFoundException("Delete like failed: Incorrect film id");
         }
@@ -51,7 +49,6 @@ public class FilmService {
         likeDbStorage.deleteLike(filmId, userId);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like deleted: {}", film);
-        return film;
     }
 
     public List<Film> getTopFilms(int count) {
