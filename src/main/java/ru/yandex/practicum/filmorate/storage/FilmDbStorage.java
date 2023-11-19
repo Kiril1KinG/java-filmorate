@@ -42,7 +42,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        validateFilm(film, "Update");
         List<Integer> filmId = jdbcTemplate.query("SELECT * FROM film WHERE film_id = ?",
                 ((rs, rowNum) -> rs.getInt("film_id")), film.getId());
         if (filmId.size() != 1) {
@@ -61,10 +60,11 @@ public class FilmDbStorage implements FilmStorage {
         String query = "SELECT f.film_id film_id, f.name name, f.description description," +
                 "f.release_date release_date, f.duration duration, f.rating_id rating_id, r.name rating_name " +
                 "FROM film f " +
-                "JOIN rating r ON f.rating_id = r.rating_id;";
+                "JOIN rating r ON f.rating_id = r.rating_id " +
+                "ORDER BY film_id;";
         List<Film> films = jdbcTemplate.query(query, filmRowMapper());
         enrichFilms(films);
-        return films.stream().sorted(Comparator.comparingInt(Film::getId)).collect(Collectors.toList());
+        return films;
     }
 
     @Override
@@ -114,7 +114,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private void validateFilm(Film film, String operation) {
+    public void validateFilm(Film film, String operation) {
         List<Integer> ratingId = jdbcTemplate.query("SELECT rating_id FROM rating WHERE rating_id = ?",
                 ((rs, rowNum) -> rs.getInt("rating_id")),
                 film.getMpa().getId());
