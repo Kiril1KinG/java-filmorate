@@ -17,4 +17,8 @@ public interface FilmStorage {
     boolean containsFilmById(int id);
 
     void validateFilm(Film film, String operation);
+
+    void addLike(int filmId, int userId);
+
+    void  deleteLike(int filmId, int userId);
 }

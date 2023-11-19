@@ -24,7 +24,6 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final LikeDbStorage likeDbStorage;
 
 
     public void addLike(int filmId, int userId) {
@@ -34,7 +33,7 @@ public class FilmService {
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
-        likeDbStorage.addLike(filmId, userId);
+        filmStorage.addLike(filmId, userId);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like added: {}", film);
     }
@@ -46,7 +45,7 @@ public class FilmService {
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
-        likeDbStorage.deleteLike(filmId, userId);
+        filmStorage.deleteLike(filmId, userId);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like deleted: {}", film);
     }
