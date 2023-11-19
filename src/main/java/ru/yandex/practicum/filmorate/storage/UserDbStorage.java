@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -46,14 +47,15 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        List<Integer> userId = jdbcTemplate.query("SELECT * FROM \"user\" WHERE user_id = ?;",
-                ((rs, rowNum) -> rs.getInt("user_id")), user.getId());
-        if (userId.size() != 1) {
+        try {
+            Integer userId = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?;",
+                    Integer.class, user.getId());
+            jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
+                    user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
+            return user;
+        } catch (EmptyResultDataAccessException e){
             throw new DataNotFoundException("Update user failed: user not found");
         }
-        jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
-                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
-        return user;
     }
 
     @Override
@@ -65,19 +67,23 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        List<User> user = jdbcTemplate.query("SELECT * FROM \"user\" WHERE user_id = ?",
-                this::mapUser, id);
-        enrichUsers(user);
-        if (user.size() != 1) {
-            throw new DataNotFoundException("Film not found: Incorrect id");
+        try {
+            User user = jdbcTemplate.queryForObject("SELECT * FROM \"user\" WHERE user_id = ?",  this::mapUser, id);
+            enrichUsers(List.of(user));
+            return user;
+        } catch (EmptyResultDataAccessException e){
+            throw new DataNotFoundException("User not found: Incorrect id");
         }
-        return user.get(0);
     }
 
     @Override
     public boolean containsUserById(int id) {
-        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?", Long.class, id);
-        return count == 1;
+        try {
+            Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?", Long.class, id);
+            return count == 1;
+        } catch (EmptyResultDataAccessException e){
+            return false;
+        }
     }
 
     private User mapUser(ResultSet rs, int rowNum) throws SQLException {
@@ -99,17 +105,17 @@ public class UserDbStorage implements UserStorage {
     }
 
     public void addFriend(int userId, int friendId) {
-        List<Integer> friendship = jdbcTemplate.query("SELECT * FROM friendship WHERE user_id = ? AND friend_id = ?",
-                (rs, rowNum) -> rs.getInt("user_id"),
-                userId, friendId);
-        if (friendship.size() != 0) {
-            throw new RuntimeException("Add friend failed: friendship already exists");
+        try {
+            Integer friendship = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?",
+                    Integer.class, userId, friendId);
+            if (isMutualFriendship(userId, friendId)) {
+                jdbcTemplate.update("UPDATE friendship SET friendship_status = ? ", isMutualFriendship(userId, friendId));
+            }
+            jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, friendship_status) VALUES (?, ?, ?)",
+                    userId, friendId, isMutualFriendship(userId, friendId));
+        } catch (EmptyResultDataAccessException e){
+            throw new DataNotFoundException("Add friend failed: friendship already exists");
         }
-        if (isMutualFriendship(userId, friendId)) {
-            jdbcTemplate.update("UPDATE friendship SET friendship_status = ? ", isMutualFriendship(userId, friendId));
-        }
-        jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, friendship_status) VALUES (?, ?, ?)",
-                userId, friendId, isMutualFriendship(userId, friendId));
     }
 
     public void deleteFriend(int userId, int friendId) {
@@ -122,10 +128,9 @@ public class UserDbStorage implements UserStorage {
     }
 
     private boolean isMutualFriendship(int userId, int friendId) {
-        List<Integer> mutualFriendship = jdbcTemplate.query("SELECT * FROM friendship WHERE user_id = ? AND friend_id = ?",
-                (rs, rowNum) -> rs.getInt("user_id"),
-                friendId, userId);
-        return mutualFriendship.size() == 1;
+        Integer mutualFriendship = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?",
+                Integer.class, friendId, userId);
+        return mutualFriendship != null;
 
     }
 }

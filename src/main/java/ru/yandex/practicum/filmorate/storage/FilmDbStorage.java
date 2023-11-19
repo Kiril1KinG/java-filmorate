@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -52,17 +53,18 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        List<Integer> filmId = jdbcTemplate.query("SELECT * FROM film WHERE film_id = ?",
-                ((rs, rowNum) -> rs.getInt("film_id")), film.getId());
-        if (filmId.size() != 1) {
+        try {
+            Integer filmId = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM film WHERE film_id = ?",
+                    Integer.class, film.getId());
+            jdbcTemplate.update("UPDATE film SET name = ?, description = ?, release_date = ?, duration = ?," +
+                            " rating_id = ? WHERE film_id = ?",
+                    film.getName(), film.getDescription(), film.getReleaseDate(),
+                    film.getDuration(), film.getMpa().getId(), film.getId());
+            updateFilmGenres(film);
+            return film;
+        } catch (EmptyResultDataAccessException e){
             throw new DataNotFoundException("Update film failed: film not found");
         }
-        jdbcTemplate.update("UPDATE film SET name = ?, description = ?, release_date = ?, duration = ?," +
-                        " rating_id = ? WHERE film_id = ?",
-                film.getName(), film.getDescription(), film.getReleaseDate(),
-                film.getDuration(), film.getMpa().getId(), film.getId());
-        updateFilmGenres(film);
-        return film;
     }
 
     @Override
@@ -84,18 +86,23 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM film AS f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE f.film_id = ?";
-        List<Film> film = jdbcTemplate.query(query,this::mapFilm, id);
-        if (film.size() != 1) {
-            throw new DataNotFoundException("Film not found: Incorrect id");
+        try{
+            Film film = jdbcTemplate.queryForObject(query, this::mapFilm, id);
+            enrichFilms(List.of(film));
+            return film;
+        } catch (EmptyResultDataAccessException e){
+            throw new DataNotFoundException("Get film failed: Incorrect id");
         }
-        enrichFilms(film);
-        return film.get(0);
     }
 
     @Override
     public boolean containsFilmById(int id) {
-        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM film WHERE film_id = ?", Long.class, id);
-        return count == 1;
+        try {
+            Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM film WHERE film_id = ?", Long.class, id);
+            return count == 1;
+        } catch (EmptyResultDataAccessException e){
+            return false;
+        }
     }
 
     private Film mapFilm(ResultSet rs, int rowNum) throws SQLException {
@@ -125,18 +132,18 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public void validateFilm(Film film, String operation) {
-        List<Integer> ratingId = jdbcTemplate.query("SELECT rating_id FROM rating WHERE rating_id = ?",
-                ((rs, rowNum) -> rs.getInt("rating_id")),
-                film.getMpa().getId());
-        if (ratingId.size() != 1) {
-            throw new ValidationException(operation + " film failed: Incorrect rating");
-        }
-        List<Integer> genresId = jdbcTemplate.query("SELECT * FROM genre;",
-                (rs, rowNum) -> rs.getInt("genre_id"));
-        for (Genre genre : film.getGenres()) {
-            if (!genresId.contains(genre.getId())) {
-                throw new DataNotFoundException(operation + " film failed: Incorrect genres");
+        try {
+            Integer ratingId = jdbcTemplate.queryForObject("SELECT rating_id FROM rating WHERE rating_id = ?",
+                    Integer.class, film.getMpa().getId());
+            List<Integer> genresId = jdbcTemplate.query("SELECT * FROM genre;",
+                    (rs, rowNum) -> rs.getInt("genre_id"));
+            for (Genre genre : film.getGenres()) {
+                if (!genresId.contains(genre.getId())) {
+                    throw new DataNotFoundException(operation + " film failed: Incorrect genres");
+                }
             }
+        } catch (EmptyResultDataAccessException e){
+            throw new ValidationException(operation + " film failed: Incorrect rating");
         }
     }
 
@@ -150,13 +157,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public void addLike(int filmId, int userId) {
-        List<Integer> like = jdbcTemplate.query("SELECT * FROM \"like\" WHERE film_id = ? AND user_id = ?",
-                (rs, rowNum) -> rs.getInt("film_id"),
-                filmId, userId);
-        if (like.size() != 0) {
-            throw new RuntimeException("Add like failed: like already exists");
-        }
-        jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
+            Integer like = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"like\" WHERE film_id = ? AND user_id = ?",
+                    Integer.class, filmId, userId);
+            if (like != 0){
+                throw new RuntimeException("Add like failed: like already exists");
+            }
+            jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {
