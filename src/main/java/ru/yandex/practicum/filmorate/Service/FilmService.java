@@ -2,10 +2,13 @@ package ru.yandex.practicum.filmorate.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -23,6 +26,7 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final JdbcTemplate jdbcTemplate;
 
 
     public void addLike(int filmId, int userId) {
@@ -59,14 +63,14 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
-        filmStorage.validateFilm(film, "Add");
+        validateFilm(film, "Add");
         validateReleaseDate(film);
         log.info("Film added: {}", film);
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        filmStorage.validateFilm(film, "Update");
+        validateFilm(film, "Update");
         if (!filmStorage.containsFilmById(film.getId())) {
             throw new DataNotFoundException("Update film failed: Film not found");
         }
@@ -90,6 +94,22 @@ public class FilmService {
         Film film = filmStorage.getFilmById(id);
         log.info("Film by id received: {}", film);
         return film;
+    }
+
+    private void validateFilm(Film film, String operation) {
+        try {
+            jdbcTemplate.queryForObject("SELECT rating_id FROM rating WHERE rating_id = ?", Integer.class,
+                    film.getMpa().getId());
+            List<Integer> genresId = jdbcTemplate.query("SELECT * FROM genre;",
+                    (rs, rowNum) -> rs.getInt("genre_id"));
+            for (Genre genre : film.getGenres()) {
+                if (!genresId.contains(genre.getId())) {
+                    throw new DataNotFoundException(operation + " film failed: Incorrect genres");
+                }
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new ValidationException(operation + " film failed: Incorrect rating");
+        }
     }
 
 }

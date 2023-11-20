@@ -8,7 +8,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -128,22 +127,6 @@ public class FilmDbStorage implements FilmStorage {
             Collection<Integer> likes = jdbcTemplate.query(likesForFilm, ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
             film.setGenres(new HashSet<>(genres));
             film.setLikes(new HashSet<>(likes));
-        }
-    }
-
-    public void validateFilm(Film film, String operation) {
-        try {
-            Integer ratingId = jdbcTemplate.queryForObject("SELECT rating_id FROM rating WHERE rating_id = ?",
-                    Integer.class, film.getMpa().getId());
-            List<Integer> genresId = jdbcTemplate.query("SELECT * FROM genre;",
-                    (rs, rowNum) -> rs.getInt("genre_id"));
-            for (Genre genre : film.getGenres()) {
-                if (!genresId.contains(genre.getId())) {
-                    throw new DataNotFoundException(operation + " film failed: Incorrect genres");
-                }
-            }
-        } catch (EmptyResultDataAccessException e) {
-            throw new ValidationException(operation + " film failed: Incorrect rating");
         }
     }
 
