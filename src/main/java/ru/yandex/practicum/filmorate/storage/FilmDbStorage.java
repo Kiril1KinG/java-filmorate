@@ -30,9 +30,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        if (containsFilmById(film.getId())) {
-            throw new DataNotFoundException("Add film failed: film already exists");
-        }
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(con -> {
             PreparedStatement ps = con
@@ -53,9 +50,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        if (!containsFilmById(film.getId())) {
-            throw new DataNotFoundException("Update film failed: film not found");
-        }
         jdbcTemplate.update("UPDATE film SET name = ?, description = ?, release_date = ?, duration = ?," +
                         " rating_id = ? WHERE film_id = ?",
                 film.getName(), film.getDescription(), film.getReleaseDate(),

@@ -23,7 +23,7 @@ public class GenreDbStorage {
 
     public Genre getGenreById(int id) {
         try {
-            return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM genre WHERE genre_id = ?",
+            return jdbcTemplate.queryForObject("SELECT * FROM genre WHERE genre_id = ?",
                     this::mapGenre, id);
         } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Genre not found: Incorrect id");

@@ -72,6 +72,9 @@ public class UserService {
     }
 
     public User addUser(User user) {
+        if (userStorage.containsUserById(user.getId())) {
+            throw new DataNotFoundException("Add user failed: user already exists");
+        }
         validate(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());

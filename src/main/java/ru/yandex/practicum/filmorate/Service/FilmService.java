@@ -63,6 +63,9 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
+        if (filmStorage.containsFilmById(film.getId())) {
+            throw new DataNotFoundException("Add film failed: film already exists");
+        }
         validateFilm(film, "Add");
         validateReleaseDate(film);
         log.info("Film added: {}", film);
@@ -70,10 +73,10 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        validateFilm(film, "Update");
         if (!filmStorage.containsFilmById(film.getId())) {
             throw new DataNotFoundException("Update film failed: Film not found");
         }
+        validateFilm(film, "Update");
         log.info("Film updated: {}", film);
         return filmStorage.updateFilm(film);
     }

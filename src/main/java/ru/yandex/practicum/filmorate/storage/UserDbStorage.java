@@ -27,9 +27,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-        if (containsUserById(user.getId())) {
-            throw new DataNotFoundException("Add user failed: user already exists");
-        }
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(con -> {
             PreparedStatement ps = con
@@ -47,9 +44,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        if (!containsUserById(user.getId())) {
-            throw new DataNotFoundException("Update user failed: user not found");
-        }
         jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
                 user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
         return user;
