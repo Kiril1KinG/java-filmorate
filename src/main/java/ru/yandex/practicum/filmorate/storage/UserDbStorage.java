@@ -47,15 +47,12 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        try {
-            Integer userId = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"user\" WHERE user_id = ?;",
-                    Integer.class, user.getId());
-            jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
-                    user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
-            return user;
-        } catch (EmptyResultDataAccessException e) {
+        if (!containsUserById(user.getId())) {
             throw new DataNotFoundException("Update user failed: user not found");
         }
+        jdbcTemplate.update("UPDATE \"user\" SET email = ?, login = ?, name = ?, birthday = ?",
+                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
+        return user;
     }
 
     @Override
@@ -97,16 +94,16 @@ public class UserDbStorage implements UserStorage {
     }
 
     private void enrichUsers(Collection<User> users) {
-        for (User u : users) {
+        for (User user : users) {
             List<Integer> friends = jdbcTemplate.query("SELECT * FROM friendship WHERE user_id = ?",
-                    (rs, rowNum) -> rs.getInt("friend_id"), u.getId());
-            u.setFriends(new HashSet<>(friends));
+                    (rs, rowNum) -> rs.getInt("friend_id"), user.getId());
+            user.setFriends(new HashSet<>(friends));
         }
     }
 
     public void addFriend(int userId, int friendId) {
         try {
-            Integer friendship = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?",
+            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?",
                     Integer.class, userId, friendId);
             if (isMutualFriendship(userId, friendId)) {
                 jdbcTemplate.update("UPDATE friendship SET friendship_status = ? ", isMutualFriendship(userId, friendId));
