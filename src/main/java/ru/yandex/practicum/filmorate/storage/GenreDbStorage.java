@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Component
@@ -17,19 +18,22 @@ public class GenreDbStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Genre> getAllGenres() {
-        return jdbcTemplate.query("SELECT * FROM genre;", genreRowMapper());
+        return jdbcTemplate.query("SELECT * FROM genre;", this::mapGenre);
     }
 
     public Genre getGenreById(int id) {
         try {
             return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM genre WHERE genre_id = ?",
-                    genreRowMapper(), id);
+                    this::mapGenre, id);
         } catch (EmptyResultDataAccessException e) {
             throw new DataNotFoundException("Genre not found: Incorrect id");
         }
     }
 
-    private RowMapper<Genre> genreRowMapper() {
-        return (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name"));
+    private Genre mapGenre(ResultSet rs, int rowNum) throws SQLException {
+        Genre genre = new Genre();
+        genre.setId(rs.getInt("genre_id"));
+        genre.setName(rs.getString("name"));
+        return genre;
     }
 }
