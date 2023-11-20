@@ -27,9 +27,9 @@ public class UserService {
             throw new DataNotFoundException("Add friend failed: Incorrect user id");
         }
         userStorage.addFriend(userId, friendId);
-        User u = userStorage.getUserById(userId);
-        log.info("Friend added: {}", u);
-        return u;
+        User user = userStorage.getUserById(userId);
+        log.info("Friend added: {}", user);
+        return user;
     }
 
     public User deleteFriend(int userId, int friendId) {
@@ -40,9 +40,9 @@ public class UserService {
             throw new DataNotFoundException("Delete friend failed: Incorrect user id");
         }
         userStorage.deleteFriend(userId, friendId);
-        User u = userStorage.getUserById(userId);
-        log.info("Friend deleted: {}", u);
-        return u;
+        User user = userStorage.getUserById(userId);
+        log.info("Friend deleted: {}", user);
+        return user;
     }
 
     public List<User> getMutualFriends(int userId, int friendId) {
@@ -76,18 +76,18 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        User u = userStorage.addUser(user);
-        log.info("User added: {}", u);
-        return u;
+        User resultUser = userStorage.addUser(user);
+        log.info("User added: {}", resultUser);
+        return resultUser;
     }
 
     public User updateUser(User user) {
         if (!userStorage.containsUserById(user.getId())) {
             throw new DataNotFoundException("Update failed: User not found");
         }
-        User u = userStorage.updateUser(user);
-        log.info("User updated: {}", u);
-        return u;
+        User resultUser = userStorage.updateUser(user);
+        log.info("User updated: {}", resultUser);
+        return resultUser;
     }
 
     public List<User> getUsers() {
@@ -100,9 +100,9 @@ public class UserService {
         if (!userStorage.containsUserById(id)) {
             throw new DataNotFoundException("Get user failed: User not found");
         }
-        User u = userStorage.getUserById(id);
-        log.info("User by id received: {}", u);
-        return u;
+        User resultUser = userStorage.getUserById(id);
+        log.info("User by id received: {}", resultUser);
+        return resultUser;
     }
 
 
