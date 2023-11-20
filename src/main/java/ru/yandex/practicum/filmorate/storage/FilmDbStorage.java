@@ -68,8 +68,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        String query = "SELECT f.film_id film_id, f.name name, f.description description," +
-                "f.release_date release_date, f.duration duration, f.rating_id rating_id, r.name rating_name " +
+        String query = "SELECT *, r.name rating_name " +
                 "FROM film f " +
                 "JOIN rating r ON f.rating_id = r.rating_id " +
                 "ORDER BY film_id;";
@@ -80,8 +79,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        String query = "SELECT f.film_id film_id, f.name name, f.description description, " +
-                "f.release_date release_date, f.duration duration, f.rating_id rating_id, r.name rating_name " +
+        String query = "SELECT *, r.name rating_name " +
                 "FROM film AS f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE f.film_id = ?";
