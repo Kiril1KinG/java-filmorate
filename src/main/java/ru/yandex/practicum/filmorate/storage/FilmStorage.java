@@ -19,4 +19,6 @@ public interface FilmStorage {
     void addLike(int filmId, int userId);
 
     void deleteLike(int filmId, int userId);
+
+    void validateFilm(Film film, String operation);
 }
