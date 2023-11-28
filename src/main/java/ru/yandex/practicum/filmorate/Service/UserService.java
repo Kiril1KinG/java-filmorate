@@ -26,10 +26,10 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Add friend failed: Incorrect user id");
         }
-        userStorage.getUserById(userId).getFriends().add(friendId);
-        userStorage.getUserById(friendId).getFriends().add(userId);
-        log.info("Friend added: {}", userStorage.getUserById(userId));
-        return userStorage.getUserById(userId);
+        userStorage.addFriend(userId, friendId);
+        User user = userStorage.getUserById(userId);
+        log.info("Friend added: {}", user);
+        return user;
     }
 
     public User deleteFriend(int userId, int friendId) {
@@ -39,15 +39,17 @@ public class UserService {
         if (!userStorage.containsUserById(friendId)) {
             throw new DataNotFoundException("Delete friend failed: Incorrect user id");
         }
-        userStorage.getUserById(userId).getFriends().add(friendId);
-        userStorage.getUserById(friendId).getFriends().add(userId);
-        log.info("Friend deleted: {}", userStorage.getUserById(userId));
-        return userStorage.getUserById(userId);
+        userStorage.deleteFriend(userId, friendId);
+        User user = userStorage.getUserById(userId);
+        log.info("Friend deleted: {}", user);
+        return user;
     }
 
     public List<User> getMutualFriends(int userId, int friendId) {
-        final List<Integer> mutualFriendsIds = new ArrayList<>(userStorage.getUserById(userId).getFriends());
-        mutualFriendsIds.retainAll(userStorage.getUserById(friendId).getFriends());
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+        List<Integer> mutualFriendsIds = new ArrayList<>(user.getFriends());
+        mutualFriendsIds.retainAll(friend.getFriends());
         List<User> mutualFriends = mutualFriendsIds.stream()
                 .map(userStorage::getUserById)
                 .collect(Collectors.toList());
@@ -70,33 +72,40 @@ public class UserService {
     }
 
     public User addUser(User user) {
+        if (userStorage.containsUserById(user.getId())) {
+            throw new DataNotFoundException("Add user failed: user already exists");
+        }
         validate(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        log.info("User added: {}", user);
-        return userStorage.addUser(user);
+        User resultUser = userStorage.addUser(user);
+        log.info("User added: {}", resultUser);
+        return resultUser;
     }
 
     public User updateUser(User user) {
         if (!userStorage.containsUserById(user.getId())) {
             throw new DataNotFoundException("Update failed: User not found");
         }
-        log.info("User updated: {}", user);
-        return userStorage.updateUser(user);
+        User resultUser = userStorage.updateUser(user);
+        log.info("User updated: {}", resultUser);
+        return resultUser;
     }
 
     public List<User> getUsers() {
-        log.info("Users received: {}", userStorage.getUsers());
-        return userStorage.getUsers();
+        List<User> users = userStorage.getUsers();
+        log.info("Users received: {}", users);
+        return users;
     }
 
     public User getUserById(int id) {
         if (!userStorage.containsUserById(id)) {
             throw new DataNotFoundException("Get user failed: User not found");
         }
-        log.info("User by id received: {}", userStorage.getUserById(id));
-        return userStorage.getUserById(id);
+        User resultUser = userStorage.getUserById(id);
+        log.info("User by id received: {}", resultUser);
+        return resultUser;
     }
 
 

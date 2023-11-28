@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -23,29 +24,31 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final JdbcTemplate jdbcTemplate;
 
-    public Film addLike(int filmId, int userId) {
+
+    public void addLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
             throw new DataNotFoundException("Add like failed: Incorrect film id");
         }
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
-        filmStorage.getFilmById(filmId).getLikes().add(userId);
-        log.info("Like added: {}", filmStorage.getFilmById(filmId));
-        return filmStorage.getFilmById(filmId);
+        filmStorage.addLike(filmId, userId);
+        Film film = filmStorage.getFilmById(filmId);
+        log.info("Like added: {}", film);
     }
 
-    public Film deleteLike(int filmId, int userId) {
+    public void deleteLike(int filmId, int userId) {
         if (!filmStorage.containsFilmById(filmId)) {
             throw new DataNotFoundException("Delete like failed: Incorrect film id");
         }
         if (!userStorage.containsUserById(userId)) {
             throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
-        filmStorage.getFilmById(filmId).getLikes().remove(userId);
-        log.info("Like deleted: {}", filmStorage.getFilmById(filmId));
-        return filmStorage.getFilmById(filmId);
+        filmStorage.deleteLike(filmId, userId);
+        Film film = filmStorage.getFilmById(filmId);
+        log.info("Like deleted: {}", film);
     }
 
     public List<Film> getTopFilms(int count) {
@@ -58,6 +61,10 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
+        if (filmStorage.containsFilmById(film.getId())) {
+            throw new DataNotFoundException("Add film failed: film already exists");
+        }
+        filmStorage.validateFilm(film, "Add");
         validateReleaseDate(film);
         log.info("Film added: {}", film);
         return filmStorage.addFilm(film);
@@ -67,13 +74,15 @@ public class FilmService {
         if (!filmStorage.containsFilmById(film.getId())) {
             throw new DataNotFoundException("Update film failed: Film not found");
         }
+        filmStorage.validateFilm(film, "Update");
         log.info("Film updated: {}", film);
         return filmStorage.updateFilm(film);
     }
 
     public List<Film> getFilms() {
-        log.info("Films received: {}", filmStorage.getFilms());
-        return filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms();
+        log.info("Films received: {}", films);
+        return films;
     }
 
     private void validateReleaseDate(Film film) {
@@ -83,11 +92,9 @@ public class FilmService {
     }
 
     public Film getFilmById(int id) {
-        if (!filmStorage.containsFilmById(id)) {
-            throw new DataNotFoundException("Get film by id failed: Incorrect film id");
-        }
-        log.info("Film by id received: {}", filmStorage.getFilmById(id));
-        return filmStorage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
+        log.info("Film by id received: {}", film);
+        return film;
     }
 
 }
