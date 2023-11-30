@@ -49,7 +49,7 @@ public class ReviewDbStorage {
 
     public List<Review> getAllReviewsByFilmId(int filmId, int count) {
         if (filmId == 0) {
-            return jdbcTemplate.query("SELECT * FROM review LIMIT ?", this::mapReview, count);
+            return jdbcTemplate.query("SELECT * FROM review ORDER BY useful LIMIT ?", this::mapReview, count);
         }
         return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ? LIMIT ?", this::mapReview, filmId, count);
     }
