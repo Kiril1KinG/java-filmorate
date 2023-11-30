@@ -159,5 +159,27 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        String searchQuery;
+        if (by.contains("director") && by.contains("title")) {
+            searchQuery = "SELECT f.* FROM film f " +
+                    "JOIN director_film df ON f.film_id = df.film_id " +
+                    "JOIN directors d ON df.director_id = d.id " +
+                    "WHERE f.name ILIKE ? OR d.name ILIKE ?";
+        } else if (by.contains("director")) {
+            searchQuery = "SELECT f.* FROM film f " +
+                    "JOIN director_film df ON f.film_id = df.film_id " +
+                    "JOIN directors d ON df.director_id = d.id " +
+                    "WHERE d.name ILIKE ?";
+        } else if (by.contains("title")) {
+            searchQuery = "SELECT * FROM film WHERE name ILIKE ?";
+        } else {
+            throw new IllegalArgumentException("Invalid search parameters");
+        }
+
+        return jdbcTemplate.query(searchQuery, this::mapFilm, "%" + query + "%", "%" + query + "%");
+    }
+
 }
 
