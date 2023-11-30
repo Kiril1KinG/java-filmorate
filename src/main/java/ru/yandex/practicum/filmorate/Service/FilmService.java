@@ -24,7 +24,6 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final JdbcTemplate jdbcTemplate;
 
 
     public void addLike(int filmId, int userId) {
