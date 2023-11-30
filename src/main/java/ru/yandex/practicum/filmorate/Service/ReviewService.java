@@ -1,0 +1,102 @@
+package ru.yandex.practicum.filmorate.Service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.DataAlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
+import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.ReviewDbStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
+
+import java.util.List;
+
+
+@Service
+@RequiredArgsConstructor
+public class ReviewService {
+
+    private final ReviewDbStorage reviewStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
+
+
+    public Review addReview(Review review) {
+        return reviewStorage.addReview(review);
+    }
+
+    public Review updateReview(Review review){
+        if (!reviewStorage.containsReviewById(review.getId())) {
+            throw new DataNotFoundException("Review update failed: review not exists");
+        }
+        return reviewStorage.updateReview(review);
+    }
+
+    public void deleteReviewById(int id){
+        reviewStorage.deleteReviewById(id);
+    }
+
+    public Review getReviewById(int id){
+        return reviewStorage.getReviewById(id);
+    }
+
+    public List<Review> getAllReviewsByFilmId(int filmId, int count){
+        if (!filmStorage.containsFilmById(filmId)){
+            throw new DataNotFoundException("Get reviews failed: Incorrect film id");
+        }
+        return reviewStorage.getAllReviewsByFilmId(filmId, count);
+    }
+
+    public void addLike(int id, int userId){
+        if (!reviewStorage.containsReviewById(id)){
+            throw new DataNotFoundException("Add like failed: Incorrect review id");
+        }
+        if (!userStorage.containsUserById(userId)){
+            throw new DataNotFoundException("Add like failed: Incorrect user id");
+        }
+        if (reviewStorage.isReviewContainsLikeOrDislikeFromUser(id, userId, true)){
+            throw new DataAlreadyExistsException("Add like failed: Like already exists");
+        }
+        reviewStorage.addLike(id, userId);
+    }
+
+    public void addDislike(int id, int userId){
+        if (!reviewStorage.containsReviewById(id)){
+            throw new DataNotFoundException("Add dislike failed: Incorrect review id");
+        }
+        if (!userStorage.containsUserById(userId)){
+            throw new DataNotFoundException("Add dislike failed: Incorrect user id");
+        }
+        if (reviewStorage.isReviewContainsLikeOrDislikeFromUser(id, userId, false)){
+            throw new DataAlreadyExistsException("Add dislike failed: Dislike already exists");
+        }
+        reviewStorage.addDislike(id, userId);
+    }
+
+    public void deleteLike(int id, int userId){
+        if (!reviewStorage.containsReviewById(id)){
+            throw new DataNotFoundException("Delete like failed: Incorrect review id");
+        }
+        if (!userStorage.containsUserById(userId)){
+            throw new DataNotFoundException("Delete like failed: Incorrect user id");
+        }
+        if (!reviewStorage.isReviewContainsLikeOrDislikeFromUser(id, userId, true)){
+            throw new DataAlreadyExistsException("Delete like failed: Like not exists");
+        }
+        reviewStorage.deleteLike(id, userId);
+    }
+
+    public void deleteDislike(int id, int userId){
+        if (!reviewStorage.containsReviewById(id)){
+            throw new DataNotFoundException("Delete dislike failed: Incorrect review id");
+        }
+        if (!userStorage.containsUserById(userId)){
+            throw new DataNotFoundException("Delete dislike failed: Incorrect user id");
+        }
+        if (!reviewStorage.isReviewContainsLikeOrDislikeFromUser(id, userId, false)){
+            throw new DataAlreadyExistsException("Delete dislike failed: Dislike not exists");
+        }
+        reviewStorage.deleteDislike(id, userId);
+    }
+
+}
