@@ -97,4 +97,12 @@ public class FilmService {
         return film;
     }
 
+    public void deleteFilm(int filmId) {
+        if (!filmStorage.containsFilmById(filmId)) {
+            throw new DataNotFoundException("Delete film failed: Film not found");
+        }
+        filmStorage.deleteFilm(filmId);
+        log.info("Film deleted: {}", filmId);
+    }
+
 }

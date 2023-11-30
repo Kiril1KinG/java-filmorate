@@ -67,4 +67,11 @@ public class FilmController {
         log.info("GET: /films/popular?count={}", count);
         return filmService.getTopFilms(count);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable int id) {
+        log.info("DELETE: /films/{}", id);
+        filmService.deleteFilm(id);
+    }
+
 }
