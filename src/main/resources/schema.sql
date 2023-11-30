@@ -41,4 +41,5 @@ create table friendship (
 	friend_id int not null references "user" (user_id) on delete cascade,
 	friendship_status bool not null,
 	primary key (user_id, friend_id)
+
 );
