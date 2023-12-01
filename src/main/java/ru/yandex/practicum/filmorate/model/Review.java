@@ -3,19 +3,28 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class Review {
 
-    private int id;
+    private int reviewId;
+    @NotNull
+    @Length(min = 1)
     private String content;
-    private boolean isPositive;
-    private int userId;
-    private int filmId;
+    @NotNull
+    private Boolean isPositive;
+    @NotNull
+    private Integer userId;
+    @NotNull
+    private Integer filmId;
     private int useful;
 
     @Override
@@ -23,11 +32,11 @@ public class Review {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Review review = (Review) o;
-        return id == review.id;
+        return reviewId == review.reviewId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(reviewId);
     }
 }

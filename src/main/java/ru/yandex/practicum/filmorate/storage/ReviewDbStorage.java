@@ -29,13 +29,13 @@ public class ReviewDbStorage {
                                     " VALUES (?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, review.getContent());
-            ps.setBoolean(2, review.isPositive());
-            ps.setInt(3, review.getUseful());
+            ps.setBoolean(2, review.getIsPositive());
+            ps.setInt(3, 0);
             ps.setInt(4, review.getUserId());
             ps.setInt(5, review.getFilmId());
             return ps;
         }, keyHolder);
-        review.setId(keyHolder.getKey().intValue());
+        review.setReviewId(keyHolder.getKey().intValue());
         return review;
     }
 
@@ -49,21 +49,21 @@ public class ReviewDbStorage {
 
     public List<Review> getAllReviewsByFilmId(int filmId, int count) {
         if (filmId == 0) {
-            return jdbcTemplate.query("SELECT * FROM review ORDER BY useful LIMIT ?", this::mapReview, count);
+            return jdbcTemplate.query("SELECT * FROM review ORDER BY useful DESC," +
+                    " review_id ASC LIMIT ?", this::mapReview, count);
         }
-        return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ? LIMIT ?", this::mapReview, filmId, count);
+        return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ? ORDER BY useful DESC," +
+                " review_id ASC LIMIT ?", this::mapReview, filmId, count);
     }
 
     public Review updateReview(Review review) {
-        jdbcTemplate.update("UPDATE review SET content = ?, is_positive = ?, useful = ?, user_id = ?, film_id = ? " +
-                        "WHERE review_id = ?",
-                review.getContent(), review.isPositive(), review.getUseful(), review.getUserId(),
-                review.getFilmId()); //TODO можно ли менять айдишки и полезность?
-        return review;
+        jdbcTemplate.update("UPDATE review SET content = ?, is_positive = ? WHERE review_id = ?",
+                review.getContent(), review.getIsPositive(), review.getReviewId());
+        return getReviewById(review.getReviewId());
     }
 
     public void deleteReviewById(int id) {
-        jdbcTemplate.update("DELETE FROM review WHERE id = ?", id);
+        jdbcTemplate.update("DELETE FROM review WHERE review_id = ?", id);
     }
 
     public boolean containsReviewById(int id) {
@@ -77,9 +77,9 @@ public class ReviewDbStorage {
 
     private Review mapReview(ResultSet rs, int rowNum) throws SQLException {
         Review review = new Review();
-        review.setId(rs.getInt("review_id"));
+        review.setReviewId(rs.getInt("review_id"));
         review.setContent(rs.getString("content"));
-        review.setPositive(rs.getBoolean("is_positive"));
+        review.setIsPositive(rs.getBoolean("is_positive"));
         review.setUseful(rs.getInt("useful"));
         review.setUserId(rs.getInt("user_id"));
         review.setFilmId(rs.getInt("film_id"));
@@ -108,11 +108,11 @@ public class ReviewDbStorage {
         jdbcTemplate.update("DELETE FROM review_like WHERE review_id = ? AND userId = ?", id, userId);
     }
 
-    private int getUsefulById(int id){
+    private int getUsefulById(int id) {
         return jdbcTemplate.queryForObject("SELECT useful FROM review WHERE review_id = ?", Integer.class, id);
     }
 
-    public boolean isReviewContainsLikeOrDislikeFromUser(int id, int userId, boolean isPositive){
+    public boolean isReviewContainsLikeOrDislikeFromUser(int id, int userId, boolean isPositive) {
         try {
             Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM review_like WHERE review_id = ? AND" +
                     " user_id = ? AND is_positive = ?", Long.class, id, userId, isPositive);

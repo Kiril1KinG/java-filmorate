@@ -143,7 +143,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update("DELETE FROM \"like\" WHERE film_id = ? AND user_id = ?", filmId, userId);
     }
 
-   public void validateFilm(Film film, String operation) {
+    public void validateFilm(Film film, String operation) {
         try {
             jdbcTemplate.queryForObject("SELECT rating_id FROM rating WHERE rating_id = ?", Integer.class,
                     film.getMpa().getId());
