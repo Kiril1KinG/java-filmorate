@@ -52,16 +52,12 @@ public class RecommendationsService {
             }
         }
 
-        System.out.println("clean = " + clean);
-
-        var outputItems = clean.entrySet().stream()
+        return clean.entrySet().stream()
                 .filter(e -> e.getValue() >= 1)
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .map(e -> filmStorage.getFilmById(e.getKey()))
+                .map(Map.Entry::getKey)
+                .filter(filmId -> !userLikes.contains(filmId))
+                .map(filmStorage::getFilmById)
                 .collect(Collectors.toList());
-
-        outputItems.removeAll(userLikes);
-        System.out.println("recommendations = " + outputItems);
-        return outputItems;
     }
 }
