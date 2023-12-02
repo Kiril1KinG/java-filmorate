@@ -183,5 +183,36 @@ public class FilmDbStorage implements FilmStorage {
         enrichFilms(films);
         return films;
     }
+
+    @Override
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        StringBuilder sql = new StringBuilder("SELECT f.*, r.name AS rating_name FROM film AS f " +
+                "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                "LEFT JOIN \"like\" AS l ON f.film_id=l.film_id " +
+                "LEFT JOIN film_genre AS fg ON f.film_id=fg.film_id ");
+        int index = sql.length();
+        sql.append("GROUP BY f.film_id " +
+                "ORDER BY COUNT(l.user_id) DESC " +
+                "LIMIT ?");
+        if (genreId != null && year != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), genreId, year, count);
+        }
+        if (genreId != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? ");
+            return query(sql.toString(), genreId, count);
+        }
+        if (year != null) {
+            sql.insert(index, "WHERE EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), year, count);
+        }
+        return query(sql.toString(), count);
+    }
+
+    private List<Film> query(String sql, Integer... args) {
+        List<Film> films = jdbcTemplate.query(sql, this::mapFilm, (Object[]) args);
+        enrichFilms(films);
+        return films;
+    }
 }
 
