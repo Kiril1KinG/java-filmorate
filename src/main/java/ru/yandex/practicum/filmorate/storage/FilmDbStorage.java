@@ -122,11 +122,9 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void updateFilmGenres(Film film) {
-        List<Integer> id = jdbcTemplate.query("SELECT * FROM film WHERE name = ? AND release_date = ?",
-                (rs, rowNum) -> rs.getInt("film_id"), film.getName(), film.getReleaseDate());
-        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", id.get(0));
+        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
         for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update("INSERT INTO film_genre VALUES (?, ?)", id.get(0), genre.getId());
+            jdbcTemplate.update("INSERT INTO film_genre VALUES (?, ?)", film.getId(), genre.getId());
         }
     }
 
