@@ -17,10 +17,11 @@ public class RecommendationsService {
 
     public List<Film> getUserRecommendations(int userId) {
         var allLikes = recommendationsDbStorage.getAllLikes();
-        var userLikes = allLikes.get(userId);
-        if (userLikes.size() == 0) {
+        if (allLikes.size() == 0) {
             return Collections.EMPTY_LIST;
         }
+        var userLikes = allLikes.get(userId);
+
 
         Map<Integer, Map<Integer, Integer>> freq = new HashMap<>();
         for (var likes : allLikes.values()) {
