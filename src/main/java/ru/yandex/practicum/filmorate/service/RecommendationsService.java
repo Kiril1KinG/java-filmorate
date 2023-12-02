@@ -55,7 +55,7 @@ public class RecommendationsService {
         System.out.println("clean = " + clean);
 
         var outputItems = clean.entrySet().stream()
-                .filter(e -> e.getValue() >= 2)
+                .filter(e -> e.getValue() >= 1)
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(e -> filmStorage.getFilmById(e.getKey()))
                 .collect(Collectors.toList());
