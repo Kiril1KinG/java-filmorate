@@ -163,26 +163,29 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilms(String inlineQuery, String by) {
+    public List<Film> searchFilms(String query, String by) {
         String searchQuery;
-        String query = inlineQuery.toLowerCase();
         List<Object> parameters = new ArrayList<>();
 
         if (by.contains("director") && by.contains("title")) {
-            searchQuery = "SELECT DISTINCT f.* FROM film f " +
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
-                    "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?";
+                    "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
             parameters.add("%" + query + "%");
         } else if (by.contains("director")) {
-            searchQuery = "SELECT DISTINCT f.* FROM film f " +
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
-                    "WHERE LOWER(d.name) LIKE ?";
+                    "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "WHERE LOWER(d.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
         } else if (by.contains("title")) {
-            searchQuery = "SELECT * FROM film WHERE LOWER(name) LIKE ?";
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
+                    "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
         } else {
             throw new IllegalArgumentException("Invalid search parameters");
@@ -196,6 +199,42 @@ public class FilmDbStorage implements FilmStorage {
 
         return result;
     }
+
+
+//    @Override
+//    public List<Film> searchFilms(String inlineQuery, String by) {
+//        String searchQuery;
+//        String query = inlineQuery.toLowerCase();
+//        List<Object> parameters = new ArrayList<>();
+//
+//        if (by.contains("director") && by.contains("title")) {
+//            searchQuery = "SELECT DISTINCT f.* FROM film f " +
+//                    "JOIN director_film df ON f.film_id = df.film_id " +
+//                    "JOIN directors d ON df.director_id = d.id " +
+//                    "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?";
+//            parameters.add("%" + query + "%");
+//            parameters.add("%" + query + "%");
+//        } else if (by.contains("director")) {
+//            searchQuery = "SELECT DISTINCT f.* FROM film f " +
+//                    "JOIN director_film df ON f.film_id = df.film_id " +
+//                    "JOIN directors d ON df.director_id = d.id " +
+//                    "WHERE LOWER(d.name) LIKE ?";
+//            parameters.add("%" + query + "%");
+//        } else if (by.contains("title")) {
+//            searchQuery = "SELECT * FROM film WHERE LOWER(name) LIKE ?";
+//            parameters.add("%" + query + "%");
+//        } else {
+//            throw new IllegalArgumentException("Invalid search parameters");
+//        }
+//
+//        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilm, parameters.toArray());
+//
+//        if (result.isEmpty()) {
+//            log.info("No films found for the query: {} by {}", query, by);
+//        }
+//
+//        return result;
+//    }
 
 
 
