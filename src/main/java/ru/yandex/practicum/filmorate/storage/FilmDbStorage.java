@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.List;
 @Component
 @Primary
 @RequiredArgsConstructor
+@Slf4j
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -160,26 +163,43 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilms(String query, String by) {
+    public List<Film> searchFilms(String inlineQuery, String by) {
         String searchQuery;
+        String query = inlineQuery.toLowerCase();
+        List<Object> parameters = new ArrayList<>();
+
         if (by.contains("director") && by.contains("title")) {
-            searchQuery = "SELECT f.* FROM film f " +
+            searchQuery = "SELECT DISTINCT f.* FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
-                    "WHERE f.name ILIKE ? OR d.name ILIKE ?";
+                    "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?";
+            parameters.add("%" + query + "%");
+            parameters.add("%" + query + "%");
         } else if (by.contains("director")) {
-            searchQuery = "SELECT f.* FROM film f " +
+            searchQuery = "SELECT DISTINCT f.* FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
-                    "WHERE d.name ILIKE ?";
+                    "WHERE LOWER(d.name) LIKE ?";
+            parameters.add("%" + query + "%");
         } else if (by.contains("title")) {
-            searchQuery = "SELECT * FROM film WHERE name ILIKE ?";
+            searchQuery = "SELECT * FROM film WHERE LOWER(name) LIKE ?";
+            parameters.add("%" + query + "%");
         } else {
             throw new IllegalArgumentException("Invalid search parameters");
         }
 
-        return jdbcTemplate.query(searchQuery, this::mapFilm, "%" + query + "%", "%" + query + "%");
+        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilm, parameters.toArray());
+
+        if (result.isEmpty()) {
+            log.info("No films found for the query: {} by {}", query, by);
+        }
+
+        return result;
     }
+
+
+
+
 
 }
 
