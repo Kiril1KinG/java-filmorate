@@ -89,9 +89,10 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void addFeed(int userId, int entityId, EventType eventType, Operation operation) {
         jdbcTemplate.update("INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) " +
-                "VALUES (?, ?, ?, ?, ?)",
+                        "VALUES (?, ?, ?, ?, ?)",
                 LocalDateTime.now(), userId, eventType.toString(), operation.toString(), entityId);
     }
+
     private Feed mapFeed(ResultSet rs, int rowNum) throws SQLException {
         Feed feed = new Feed();
         feed.setEventId(rs.getInt("event_id"));

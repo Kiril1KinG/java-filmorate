@@ -49,7 +49,7 @@ public class ReviewService {
     }
 
     public void deleteReviewById(int id) {
-        if (!reviewStorage.containsReviewById(id)){
+        if (!reviewStorage.containsReviewById(id)) {
             throw new DataNotFoundException("Delete review failed: review not exists");
         }
         Review review = reviewStorage.getReviewById(id);
