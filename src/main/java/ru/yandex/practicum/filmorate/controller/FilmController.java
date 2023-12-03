@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.Service.FilmService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
@@ -66,6 +66,12 @@ public class FilmController {
     public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("GET: /films/popular?count={}", count);
         return filmService.getTopFilms(count);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getSortedFilmsByDirector(@PathVariable int directorId, @RequestParam List<String> sortBy) {
+        log.info("GET /films/director/{}?sortBy={}", directorId, sortBy);
+        return filmService.getSortedFilmsByDirector(directorId, sortBy);
     }
 
     @GetMapping("/search")
