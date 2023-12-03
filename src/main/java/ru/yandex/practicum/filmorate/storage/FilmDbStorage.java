@@ -115,7 +115,8 @@ public class FilmDbStorage implements FilmStorage {
             Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
                     (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
                     ), film.getId());
-            Collection<Integer> likes = jdbcTemplate.query(likesForFilm, ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
+            Collection<Integer> likes = jdbcTemplate.query(likesForFilm,
+                    ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
             film.setGenres(new HashSet<>(genres));
             film.setLikes(new HashSet<>(likes));
         }
@@ -159,5 +160,28 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    @Override
+    public List<Film> getSortedFilmsByDirector(int directorId, List<String> sortBy) {
+        String query = "";
+        if (sortBy.contains("year")) {
+            query = "SELECT f.*, r.name AS rating_name FROM film AS f " +
+                    "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                    "JOIN director_film AS df ON f.film_id = df.film_id " +
+                    "WHERE df.director_id = ? ORDER BY f.release_date";
+
+        }
+        if (sortBy.contains("likes")) {
+            query = "SELECT f.*, r.name AS rating_name FROM film AS f " +
+                    "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN \"like\" AS l ON f.film_id=l.film_id " +
+                    "JOIN director_film AS df ON f.film_id=df.film_id " +
+                    "WHERE df.director_id = ? " +
+                    "GROUP BY f.film_id " +
+                    "ORDER BY COUNT(l.user_id) DESC";
+        }
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm, directorId);
+        enrichFilms(films);
+        return films;
+    }
 }
 
