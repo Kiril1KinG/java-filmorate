@@ -95,8 +95,7 @@ public class UserDbStorage implements UserStorage {
     private Feed mapFeed(ResultSet rs, int rowNum) throws SQLException {
         Feed feed = new Feed();
         feed.setEventId(rs.getInt("event_id"));
-        feed.setTime(LocalDateTime.of(rs.getDate("event_time").toLocalDate(),
-                (rs.getTime("event_time").toLocalTime())));
+        feed.setTime(rs.getTimestamp("event_time").toInstant().toEpochMilli());
         feed.setUserId(rs.getInt("user_id"));
         feed.setEventType(rs.getString("event_type"));
         feed.setOperation(rs.getString("operation"));

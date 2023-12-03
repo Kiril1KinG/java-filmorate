@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
@@ -14,7 +13,8 @@ import java.time.LocalDateTime;
 public class Feed {
 
     private int eventId;
-    private LocalDateTime time;
+    @JsonProperty("timestamp")
+    private Long time;
     private int userId;
     private String eventType;
     private String operation;

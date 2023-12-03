@@ -43,7 +43,7 @@ public class ReviewService {
             throw new DataNotFoundException("Update review failed: review not exists");
         }
         Review result = reviewStorage.updateReview(review);
-        userStorage.addFeed(review.getUserId(), review.getReviewId(), EventType.REVIEW, Operation.UPDATE);
+        userStorage.addFeed(result.getUserId(), result.getReviewId(), EventType.REVIEW, Operation.UPDATE);
         log.info("Review updated: {}", result);
         return result;
     }
