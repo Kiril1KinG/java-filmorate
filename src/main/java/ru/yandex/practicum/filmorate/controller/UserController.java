@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -69,5 +70,10 @@ public class UserController {
     public List<User> getMutualFriends(@PathVariable int id, @PathVariable int friendId) {
         log.info("GET: /users/{}/friends/common/{}", id, friendId);
         return userService.getMutualFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Feed> getUserFeed(@PathVariable int id) {
+        return userService.getUserFeeds(id);
     }
 }

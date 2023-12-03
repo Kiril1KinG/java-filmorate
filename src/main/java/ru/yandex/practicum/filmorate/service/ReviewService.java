@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewDbStorage;
@@ -31,6 +33,7 @@ public class ReviewService {
             throw new DataNotFoundException("Add review failed: Incorrect film id");
         }
         Review result = reviewStorage.addReview(review);
+        userStorage.addFeed(review.getUserId(), review.getReviewId(), EventType.REVIEW, Operation.ADD);
         log.info("Review added: {}", result);
         return result;
     }
@@ -40,11 +43,17 @@ public class ReviewService {
             throw new DataNotFoundException("Update review failed: review not exists");
         }
         Review result = reviewStorage.updateReview(review);
+        userStorage.addFeed(review.getUserId(), review.getReviewId(), EventType.REVIEW, Operation.UPDATE);
         log.info("Review updated: {}", result);
         return result;
     }
 
     public void deleteReviewById(int id) {
+        if (!reviewStorage.containsReviewById(id)){
+            throw new DataNotFoundException("Delete review failed: review not exists");
+        }
+        Review review = reviewStorage.getReviewById(id);
+        userStorage.addFeed(review.getUserId(), review.getReviewId(), EventType.REVIEW, Operation.REMOVE);
         reviewStorage.deleteReviewById(id);
         log.info("Review with id={} deleted", id);
     }

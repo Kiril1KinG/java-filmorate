@@ -8,6 +8,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
@@ -15,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +79,29 @@ public class UserDbStorage implements UserStorage {
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
+    }
+
+    @Override
+    public List<Feed> getUserFeeds(int id) {
+        return jdbcTemplate.query("SELECT * FROM feed WHERE user_id = ? ORDER BY event_time", this::mapFeed, id);
+    }
+
+    @Override
+    public void addFeed(int userId, int entityId, EventType eventType, Operation operation) {
+        jdbcTemplate.update("INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) " +
+                "VALUES (?, ?, ?, ?, ?)",
+                LocalDateTime.now(), userId, eventType.toString(), operation.toString(), entityId);
+    }
+    private Feed mapFeed(ResultSet rs, int rowNum) throws SQLException {
+        Feed feed = new Feed();
+        feed.setEventId(rs.getInt("event_id"));
+        feed.setTime(LocalDateTime.of(rs.getDate("event_time").toLocalDate(),
+                (rs.getTime("event_time").toLocalTime())));
+        feed.setUserId(rs.getInt("user_id"));
+        feed.setEventType(rs.getString("event_type"));
+        feed.setOperation(rs.getString("operation"));
+        feed.setEntityId(rs.getInt("entity_id"));
+        return feed;
     }
 
     private User mapUser(ResultSet rs, int rowNum) throws SQLException {
