@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -19,10 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @Component
 @Primary
@@ -109,6 +107,42 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
+    private Film mapFilmTotal(ResultSet rs, int rowNum) throws SQLException {
+        Film film = new Film();
+        film.setId(rs.getInt("film_id"));
+        film.setName(rs.getString("name"));
+        film.setDescription(rs.getString("description"));
+        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+        film.setDuration(rs.getInt("duration"));
+        film.setMpa(new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")));
+
+        // Обработка жанров
+        Set<Genre> genres = new HashSet<>();
+        while (rs.next() && rs.getInt("film_id") == film.getId()) {
+            int genreId = rs.getInt("genre_id");
+            if (genreId > 0) {
+                genres.add(new Genre(genreId, rs.getString("genre_name")));
+            }
+        }
+        rs.previous(); // Возвращаем указатель ResultSet на предыдущую строку после цикла
+        film.setGenres(genres);
+
+// Обработка режиссеров
+        Set<Director> directors = new HashSet<>();
+        while (rs.next() && rs.getInt("film_id") == film.getId()) {
+            int directorId = rs.getInt("director_id");
+            if (directorId > 0) {
+                directors.add(new Director(directorId, rs.getString("director_name")));
+            }
+        }
+        rs.previous(); // Возвращаем указатель ResultSet на предыдущую строку после цикла
+        film.setDirectors(directors);
+
+
+        return film;
+    }
+
+
     private void enrichFilms(Collection<Film> films) {
         String genresForFilm = "SELECT * FROM film_genre AS fg " +
                 "JOIN genre AS g ON fg.genre_id = g.genre_id " +
@@ -193,30 +227,44 @@ public class FilmDbStorage implements FilmStorage {
         List<Object> parameters = new ArrayList<>();
 
         if (by.contains("director") && by.contains("title")) {
-            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name, g.name as genre_name, d.name as director_name, " +
+                    "fg.genre_id, df.director_id " +
+                    "FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
                     "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genre fg ON f.film_id = fg.film_id " +
+                    "LEFT JOIN genre g ON fg.genre_id = g.genre_id " +
                     "WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
             parameters.add("%" + query + "%");
         } else if (by.contains("director")) {
-            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name, g.name as genre_name, d.name as director_name, " +
+                    "fg.genre_id, df.director_id " +
+                    "FROM film f " +
                     "JOIN director_film df ON f.film_id = df.film_id " +
                     "JOIN directors d ON df.director_id = d.id " +
                     "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genre fg ON f.film_id = fg.film_id " +
+                    "LEFT JOIN genre g ON fg.genre_id = g.genre_id " +
                     "WHERE LOWER(d.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
         } else if (by.contains("title")) {
-            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name FROM film f " +
+            searchQuery = "SELECT DISTINCT f.*, r.name as rating_name, g.name as genre_name, d.name as director_name, " +
+                    "fg.genre_id, df.director_id " +
+                    "FROM film f " +
                     "JOIN rating r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_genre fg ON f.film_id = fg.film_id " +
+                    "LEFT JOIN genre g ON fg.genre_id = g.genre_id " +
+                    "LEFT JOIN director_film df ON f.film_id = df.film_id " +
+                    "LEFT JOIN directors d ON df.director_id = d.id " +
                     "WHERE LOWER(f.name) LIKE LOWER(?)";
             parameters.add("%" + query + "%");
         } else {
             throw new IllegalArgumentException("Invalid search parameters");
         }
 
-        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilm, parameters.toArray());
+        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilmTotal, parameters.toArray());
 
         if (result.isEmpty()) {
             log.info("No films found for the query: {} by {}", query, by);
@@ -224,5 +272,6 @@ public class FilmDbStorage implements FilmStorage {
 
         return result;
     }
+
 }
 
