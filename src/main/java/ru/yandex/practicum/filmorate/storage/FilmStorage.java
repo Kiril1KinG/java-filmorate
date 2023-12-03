@@ -21,4 +21,6 @@ public interface FilmStorage {
     void deleteLike(int filmId, int userId);
 
     void validateFilm(Film film, String operation);
+
+    List<Film> getSortedFilmsByDirector(int directorId, List<String> sortBy);
 }
