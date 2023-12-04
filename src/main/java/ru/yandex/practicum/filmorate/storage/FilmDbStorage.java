@@ -107,6 +107,7 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
+    @Deprecated
     private Film mapFilmTotal(ResultSet rs, int rowNum) throws SQLException {
         Film film = new Film();
         film.setId(rs.getInt("film_id"));
@@ -264,7 +265,8 @@ public class FilmDbStorage implements FilmStorage {
             throw new IllegalArgumentException("Invalid search parameters");
         }
 
-        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilmTotal, parameters.toArray());
+        List<Film> result = jdbcTemplate.query(searchQuery, this::mapFilm, parameters.toArray());
+        enrichFilms(result);
 
         if (result.isEmpty()) {
             log.info("No films found for the query: {} by {}", query, by);
