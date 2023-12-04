@@ -23,4 +23,6 @@ public interface FilmStorage {
     void validateFilm(Film film, String operation);
 
     List<Film> getSortedFilmsByDirector(int directorId, List<String> sortBy);
+
+    List<Film> getCommonFilms(int userId, int friendId);
 }
