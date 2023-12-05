@@ -129,4 +129,13 @@ public class FilmService {
         log.info("Most popular films by genre and year received: {}", films);
         return films;
     }
+
+    public void deleteFilm(int filmId) {
+        if (!filmStorage.containsFilmById(filmId)) {
+            throw new DataNotFoundException("Delete film failed: Film not found");
+        }
+        filmStorage.deleteFilm(filmId);
+        log.info("Film deleted: {}", filmId);
+    }
+
 }

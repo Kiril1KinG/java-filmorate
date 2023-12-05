@@ -79,4 +79,10 @@ public class UserController {
         log.info("GET: /users/{}/recommendations", id);
         return recommendationsService.getUserRecommendations(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        log.info("DELETE: /users/{}", id);
+        userService.deleteUser(id);
+    }
 }

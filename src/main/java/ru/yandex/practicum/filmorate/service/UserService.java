@@ -107,4 +107,12 @@ public class UserService {
         log.info("User by id received: {}", resultUser);
         return resultUser;
     }
+
+    public void deleteUser(int userId) {
+        if (!userStorage.containsUserById(userId)) {
+            throw new DataNotFoundException("Delete user failed: User not found");
+        }
+        userStorage.deleteUser(userId);
+        log.info("User deleted: {}", userId);
+    }
 }
