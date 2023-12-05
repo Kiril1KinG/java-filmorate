@@ -119,4 +119,11 @@ public class FilmService {
         log.info("Sorted films by director received: {}", films);
         return films;
     }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        List<Film> sortedFilms = filmStorage.getCommonFilms(userId, friendId).stream()
+                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+        return sortedFilms;
+    }
 }
