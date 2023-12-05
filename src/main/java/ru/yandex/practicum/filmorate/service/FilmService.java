@@ -122,4 +122,11 @@ public class FilmService {
                 .collect(Collectors.toList());
         return sortedFilms;
     }
+
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        List<Film> films = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+        films.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
+        log.info("Most popular films by genre and year received: {}", films);
+        return films;
+    }
 }
