@@ -95,5 +95,4 @@ public class FilmController {
         log.info("DELETE: /films/{}", id);
         filmService.deleteFilm(id);
     }
-
 }

@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -35,6 +37,7 @@ public class FilmService {
             throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
         filmStorage.addLike(filmId, userId);
+        userStorage.addFeed(userId, filmId, EventType.LIKE, Operation.ADD);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like added: {}", film);
     }
@@ -47,6 +50,7 @@ public class FilmService {
             throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
         filmStorage.deleteLike(filmId, userId);
+        userStorage.addFeed(userId, filmId, EventType.LIKE, Operation.REMOVE);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like deleted: {}", film);
     }
