@@ -214,5 +214,18 @@ public class FilmDbStorage implements FilmStorage {
         enrichFilms(films);
         return films;
     }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String query = "SELECT f.FILM_ID ,f.name, f.DESCRIPTION , f.RELEASE_DATE , f.DURATION , f.RATING_ID, r.name rating_name " +
+                "FROM film f " +
+                "JOIN \"like\" l1 ON f.film_id = l1.film_id " +
+                "JOIN \"like\" l2 ON f.film_id = l2.film_id " +
+                "JOIN rating r ON f.rating_id = r.rating_id " +
+                "WHERE l1.user_id = ? AND l2.user_id = ?";
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm, userId, friendId);
+        enrichFilms(films);
+        return films;
+    }
 }
 

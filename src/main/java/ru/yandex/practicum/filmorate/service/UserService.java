@@ -107,6 +107,4 @@ public class UserService {
         log.info("User by id received: {}", resultUser);
         return resultUser;
     }
-
-
 }

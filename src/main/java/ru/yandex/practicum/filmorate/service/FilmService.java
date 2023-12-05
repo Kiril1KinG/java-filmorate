@@ -11,7 +11,9 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,6 +49,16 @@ public class FilmService {
         filmStorage.deleteLike(filmId, userId);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like deleted: {}", film);
+    }
+
+    public List<Film> getTopFilms(int count) {
+        List<Film> sortedFilms = filmStorage.getFilms().stream()
+                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
+                .limit(count)
+                .collect(Collectors.toList());
+        sortedFilms.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
+        log.info("Top films received: {}", sortedFilms);
+        return sortedFilms;
     }
 
     public Film addFilm(Film film) {
@@ -102,6 +114,13 @@ public class FilmService {
         films.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
         log.info("Sorted films by director received: {}", films);
         return films;
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        List<Film> sortedFilms = filmStorage.getCommonFilms(userId, friendId).stream()
+                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+        return sortedFilms;
     }
 
     public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
