@@ -115,7 +115,8 @@ public class FilmDbStorage implements FilmStorage {
             Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
                     (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
                     ), film.getId());
-            Collection<Integer> likes = jdbcTemplate.query(likesForFilm, ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
+            Collection<Integer> likes = jdbcTemplate.query(likesForFilm,
+                    ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
             film.setGenres(new HashSet<>(genres));
             film.setLikes(new HashSet<>(likes));
         }
@@ -141,7 +142,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update("DELETE FROM \"like\" WHERE film_id = ? AND user_id = ?", filmId, userId);
     }
 
-   public void validateFilm(Film film, String operation) {
+    public void validateFilm(Film film, String operation) {
         try {
             jdbcTemplate.queryForObject("SELECT rating_id FROM rating WHERE rating_id = ?", Integer.class,
                     film.getMpa().getId());
@@ -157,6 +158,73 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    @Override
+    public List<Film> getSortedFilmsByDirector(int directorId, List<String> sortBy) {
+        String query = "";
+        if (sortBy.contains("year")) {
+            query = "SELECT f.*, r.name AS rating_name FROM film AS f " +
+                    "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                    "JOIN director_film AS df ON f.film_id = df.film_id " +
+                    "WHERE df.director_id = ? ORDER BY f.release_date";
+
+        }
+        if (sortBy.contains("likes")) {
+            query = "SELECT f.*, r.name AS rating_name FROM film AS f " +
+                    "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN \"like\" AS l ON f.film_id=l.film_id " +
+                    "JOIN director_film AS df ON f.film_id=df.film_id " +
+                    "WHERE df.director_id = ? " +
+                    "GROUP BY f.film_id " +
+                    "ORDER BY COUNT(l.user_id) DESC";
+        }
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm, directorId);
+        enrichFilms(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        StringBuilder sql = new StringBuilder("SELECT f.*, r.name AS rating_name FROM film AS f " +
+                "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                "LEFT JOIN \"like\" AS l ON f.film_id=l.film_id " +
+                "LEFT JOIN film_genre AS fg ON f.film_id=fg.film_id ");
+        int index = sql.length();
+        sql.append("GROUP BY f.film_id " +
+                "ORDER BY COUNT(l.user_id) DESC " +
+                "LIMIT ?");
+        if (genreId != null && year != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), genreId, year, count);
+        }
+        if (genreId != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? ");
+            return query(sql.toString(), genreId, count);
+        }
+        if (year != null) {
+            sql.insert(index, "WHERE EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), year, count);
+        }
+        return query(sql.toString(), count);
+    }
+
+    private List<Film> query(String sql, Integer... args) {
+        List<Film> films = jdbcTemplate.query(sql, this::mapFilm, (Object[]) args);
+        enrichFilms(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String query = "SELECT f.FILM_ID ,f.name, f.DESCRIPTION , f.RELEASE_DATE , f.DURATION , f.RATING_ID, r.name rating_name " +
+                "FROM film f " +
+                "JOIN \"like\" l1 ON f.film_id = l1.film_id " +
+                "JOIN \"like\" l2 ON f.film_id = l2.film_id " +
+                "JOIN rating r ON f.rating_id = r.rating_id " +
+                "WHERE l1.user_id = ? AND l2.user_id = ?";
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm, userId, friendId);
+        enrichFilms(films);
+        return films;
+    }
     @Override
     public void deleteFilm(int filmId) {
         jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
