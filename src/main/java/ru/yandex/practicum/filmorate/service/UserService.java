@@ -113,6 +113,14 @@ public class UserService {
         return resultUser;
     }
 
+    public void deleteUser(int userId) {
+        if (!userStorage.containsUserById(userId)) {
+            throw new DataNotFoundException("Delete user failed: User not found");
+        }
+        userStorage.deleteUser(userId);
+        log.info("User deleted: {}", userId);
+    }
+
     public List<Feed> getUserFeeds(int id) {
         if (!userStorage.containsUserById(id)) {
             throw new DataNotFoundException("Get user feeds failed: Incorrect id");
