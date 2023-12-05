@@ -116,6 +116,10 @@ public class FilmService {
         return films;
     }
 
+    public List<Film> searchFilms(String query, String by) {
+        return filmStorage.searchFilms(query, by);
+    }
+
     public List<Film> getCommonFilms(int userId, int friendId) {
         List<Film> sortedFilms = filmStorage.getCommonFilms(userId, friendId).stream()
                 .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
