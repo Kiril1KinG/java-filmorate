@@ -150,6 +150,7 @@ public class UserDbStorage implements UserStorage {
                 Integer.class, friendId, userId);
         return mutualFriendship != null;
     }
+
     @Override
     public void deleteUser(int userId) {
         jdbcTemplate.update("DELETE FROM \"user\" WHERE user_id = ?", userId);
