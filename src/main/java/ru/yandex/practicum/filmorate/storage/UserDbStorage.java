@@ -149,6 +149,11 @@ public class UserDbStorage implements UserStorage {
         Integer mutualFriendship = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?",
                 Integer.class, friendId, userId);
         return mutualFriendship != null;
-
     }
+    @Override
+    public void deleteUser(int userId) {
+        jdbcTemplate.update("DELETE FROM \"user\" WHERE user_id = ?", userId);
+    }
+
 }
+
