@@ -225,6 +225,7 @@ public class FilmDbStorage implements FilmStorage {
         enrichFilms(films);
         return films;
     }
+
     @Override
     public void deleteFilm(int filmId) {
         jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
