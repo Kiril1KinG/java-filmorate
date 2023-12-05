@@ -33,7 +33,7 @@ public class ReviewService {
             throw new DataNotFoundException("Add review failed: Incorrect film id");
         }
         Review result = reviewStorage.addReview(review);
-        userStorage.addFeed(review.getUserId(), review.getReviewId(), EventType.REVIEW, Operation.ADD);
+        userStorage.addFeed(result.getUserId(), result.getReviewId(), EventType.REVIEW, Operation.ADD);
         log.info("Review added: {}", result);
         return result;
     }
