@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -62,12 +62,6 @@ public class FilmController {
         filmService.deleteLike(id, userId);
     }
 
-    @GetMapping("/popular")
-    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
-        log.info("GET: /films/popular?count={}", count);
-        return filmService.getTopFilms(count);
-    }
-
     @GetMapping("/director/{directorId}")
     public List<Film> getSortedFilmsByDirector(@PathVariable int directorId, @RequestParam List<String> sortBy) {
         log.info("GET /films/director/{}?sortBy={}", directorId, sortBy);
@@ -79,4 +73,27 @@ public class FilmController {
         log.info("GET: /films/search?query={}&by={}", query, by);
         return filmService.searchFilms(query, by);
     }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(
+            @RequestParam int userId,
+            @RequestParam int friendId) {
+        log.info("GET: /films/common?userId={}&friendId={}", userId, friendId);
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(defaultValue = "10") int count,
+                                                    @RequestParam(required = false) Integer genreId,
+                                                    @RequestParam(required = false) Integer year) {
+        log.info("GET: /films/popular?count={}&genreId={}&year={}", count, genreId, year);
+        return filmService.getPopularFilmsByGenreAndYear(count, genreId, year);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable int id) {
+        log.info("DELETE: /films/{}", id);
+        filmService.deleteFilm(id);
+    }
+
 }

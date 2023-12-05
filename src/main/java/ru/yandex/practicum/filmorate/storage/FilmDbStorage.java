@@ -20,9 +20,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Component
 @Primary
@@ -133,13 +136,10 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-
     private void updateFilmGenres(Film film) {
-        List<Integer> id = jdbcTemplate.query("SELECT * FROM film WHERE name = ? AND release_date = ?",
-                (rs, rowNum) -> rs.getInt("film_id"), film.getName(), film.getReleaseDate());
-        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", id.get(0));
+        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
         for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update("INSERT INTO film_genre VALUES (?, ?)", id.get(0), genre.getId());
+            jdbcTemplate.update("INSERT INTO film_genre VALUES (?, ?)", film.getId(), genre.getId());
         }
     }
 
@@ -194,6 +194,56 @@ public class FilmDbStorage implements FilmStorage {
         enrichFilms(films);
         return films;
     }
+
+    @Override
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        StringBuilder sql = new StringBuilder("SELECT f.*, r.name AS rating_name FROM film AS f " +
+                "JOIN rating AS r ON f.rating_id = r.rating_id " +
+                "LEFT JOIN \"like\" AS l ON f.film_id=l.film_id " +
+                "LEFT JOIN film_genre AS fg ON f.film_id=fg.film_id ");
+        int index = sql.length();
+        sql.append("GROUP BY f.film_id " +
+                "ORDER BY COUNT(l.user_id) DESC " +
+                "LIMIT ?");
+        if (genreId != null && year != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), genreId, year, count);
+        }
+        if (genreId != null) {
+            sql.insert(index, "WHERE fg.genre_id = ? ");
+            return query(sql.toString(), genreId, count);
+        }
+        if (year != null) {
+            sql.insert(index, "WHERE EXTRACT(YEAR FROM f.release_date) = ? ");
+            return query(sql.toString(), year, count);
+        }
+        return query(sql.toString(), count);
+    }
+
+    private List<Film> query(String sql, Integer... args) {
+        List<Film> films = jdbcTemplate.query(sql, this::mapFilm, (Object[]) args);
+        enrichFilms(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String query = "SELECT f.FILM_ID ,f.name, f.DESCRIPTION , f.RELEASE_DATE , f.DURATION , f.RATING_ID, r.name rating_name " +
+                "FROM film f " +
+                "JOIN \"like\" l1 ON f.film_id = l1.film_id " +
+                "JOIN \"like\" l2 ON f.film_id = l2.film_id " +
+                "JOIN rating r ON f.rating_id = r.rating_id " +
+                "WHERE l1.user_id = ? AND l2.user_id = ?";
+        List<Film> films = jdbcTemplate.query(query, this::mapFilm, userId, friendId);
+        enrichFilms(films);
+        return films;
+    }
+
+    @Override
+    public void deleteFilm(int filmId) {
+        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
+    }
+
 
     @Override
     public List<Film> searchFilms(String query, String by) {
