@@ -146,10 +146,9 @@ public class FilmDbStorage implements FilmStorage {
     public void addLike(int filmId, int userId) {
         Integer like = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"like\" WHERE film_id = ? AND user_id = ?",
                 Integer.class, filmId, userId);
-        if (like != 0) {
-            throw new RuntimeException("Add like failed: like already exists");
+        if (like == 0) {
+            jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
         }
-        jdbcTemplate.update("INSERT INTO \"like\" (film_id, user_id) VALUES (?, ?)", filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {
