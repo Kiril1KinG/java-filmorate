@@ -24,21 +24,21 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleDataNotFound(ValidationException e) {
+    public Map<String, String> handleValidationException(ValidationException e) {
         log.info(e.getMessage(), e);
         return Map.of("Validation failed", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleDataNotFound(DataAlreadyExistsException e) {
+    public Map<String, String> handleAlreadyExists(DataAlreadyExistsException e) {
         log.info(e.getMessage(), e);
         return Map.of("Already exists", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleDataNotFound(RuntimeException e) {
+    public Map<String, String> handleOtherExceptions(RuntimeException e) {
         log.info(e.getMessage(), e);
         return Map.of("Server error:", e.getMessage());
     }
