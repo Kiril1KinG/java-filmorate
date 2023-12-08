@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.DataAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Map;
 
 @Slf4j
@@ -34,6 +35,13 @@ public class ErrorHandler {
     public Map<String, String> handleAlreadyExists(DataAlreadyExistsException e) {
         log.info(e.getMessage(), e);
         return Map.of("Already exists", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleBadRequest(ConstraintViolationException e) {
+        log.info(e.getMessage(), e);
+        return Map.of("Bad request", e.getMessage());
     }
 
     @ExceptionHandler
