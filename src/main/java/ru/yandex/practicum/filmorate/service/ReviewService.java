@@ -65,6 +65,12 @@ public class ReviewService {
     }
 
     public List<Review> getAllReviewsByFilmId(int filmId, int count) {
+        if (filmId < 0) {
+            throw new DataNotFoundException("Get reviews by film id failed: Id must be positive");
+        }
+        if (!filmStorage.containsFilmById(filmId) && filmId > 0) {
+            throw new DataNotFoundException("Get reviews by film id failed: film not found");
+        }
         List<Review> reviews = reviewStorage.getAllReviewsByFilmId(filmId, count);
         log.info("Reviews received: {}", reviews);
         return reviews;
