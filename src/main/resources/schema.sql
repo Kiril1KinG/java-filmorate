@@ -53,7 +53,8 @@ create table review (
 	is_positive bool not null,
 	useful int not null,
 	user_id int not null references "user" (user_id) on delete cascade,
-	film_id int not null references film (film_id) on delete cascade
+	film_id int not null references film (film_id) on delete cascade,
+	unique(user_id, film_id)
 );
 
 create table review_like (

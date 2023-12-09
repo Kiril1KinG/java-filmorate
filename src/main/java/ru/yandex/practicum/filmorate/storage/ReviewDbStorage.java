@@ -112,10 +112,20 @@ public class ReviewDbStorage {
         return jdbcTemplate.queryForObject("SELECT useful FROM review WHERE review_id = ?", Integer.class, id);
     }
 
-    public boolean isReviewContainsLikeOrDislikeFromUser(int id, int userId, boolean isPositive) {
+    public boolean containsLikeOrDislikeFromUser(int id, int userId, boolean isPositive) {
         try {
             Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM review_like WHERE review_id = ? AND" +
                     " user_id = ? AND is_positive = ?", Long.class, id, userId, isPositive);
+            return count == 1;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+    }
+
+    public boolean containsReviewForFilmByUser(int filmId, int userId) {
+        try {
+            Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM review " +
+                    "WHERE user_id = ? AND film_id = ?", Long.class, userId, filmId);
             return count == 1;
         } catch (EmptyResultDataAccessException e) {
             return false;

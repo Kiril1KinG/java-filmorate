@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -27,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,41 +117,76 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void enrichFilms(Collection<Film> films) {
-        String genresForFilm = "SELECT * FROM film_genre AS fg " +
+        List<Integer> ids = films.stream()
+                .map(Film::getId)
+                .collect(Collectors.toList());
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+
+        Map<Integer, List<Genre>> genresForFilms = jdbcTemplate.query(String.format("SELECT * FROM film_genre AS fg " +
                 "JOIN genre AS g ON fg.genre_id = g.genre_id " +
-                "WHERE film_id = ?";
-        String likesForFilm = "SELECT * FROM \"like\" WHERE film_id = ?";
-        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
-        String directorsForFilm = String.format("SELECT * FROM director_film AS df " +
+                "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+            Map<Integer, List<Genre>> result = new HashMap<>();
+            List<Genre> genres;
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                if (result.containsKey(filmId)) {
+                    result.get(filmId).add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                } else {
+                    genres = new ArrayList<>();
+                    genres.add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                    result.put(filmId, genres);
+                }
+            }
+            return result;
+        }, ids.toArray());
+
+
+        Map<Integer, List<Director>> directorsForFilms = jdbcTemplate.query(String.format("SELECT * FROM director_film AS df " +
                 "JOIN directors AS d ON df.director_id = d.id " +
-                "WHERE film_id IN (%s)", inSql);
-        Collection<Map<Integer, Director>> directors = jdbcTemplate.query(directorsForFilm,
-                films.stream().map(Film::getId).toArray(), (rs, rowNum) -> Map.of(rs.getInt("film_id"),
-                        new Director(rs.getInt("director_id"), rs.getString("name"))));
-        Map<Integer, Set<Director>> idToDirector = new HashMap<>();
-        directors.forEach((m -> {
-            Integer key = m.keySet().stream().findFirst().orElse(0);
-            Set<Director> directorSet = idToDirector.getOrDefault(key, new HashSet<>());
-            directorSet.add(m.get(key));
-            idToDirector.put(key, directorSet);
-        }));
+                "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+            Map<Integer, List<Director>> result = new HashMap<>();
+            List<Director> directors;
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                if (result.containsKey(filmId)) {
+                    result.get(filmId).add(new Director(rs.getInt("id"), rs.getString("name")));
+                } else {
+                    directors = new ArrayList<>();
+                    directors.add(new Director(rs.getInt("id"), rs.getString("name")));
+                    result.put(filmId, directors);
+                }
+            }
+            return result;
+        }, ids.toArray());
+
         for (Film film : films) {
-            Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
-                    (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
-                    ), film.getId());
-            Collection<Integer> likes = jdbcTemplate.query(likesForFilm,
-                    ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
-            film.setGenres(new HashSet<>(genres));
-            film.setLikes(new HashSet<>(likes));
-            film.setDirectors(idToDirector.getOrDefault(film.getId(), new HashSet<>()));
+            int filmId = film.getId();
+            if (genresForFilms.get(filmId) != null) {
+                film.setGenres(new HashSet<>(genresForFilms.get(filmId)));
+            }
+            if (directorsForFilms.get(filmId) != null) {
+                film.setDirectors(new HashSet<>(directorsForFilms.get(filmId)));
+            }
         }
     }
 
+
     private void updateFilmGenres(Film film) {
         jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
-        for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update("INSERT INTO film_genre VALUES (?, ?)", film.getId(), genre.getId());
-        }
+        List<Genre> genres = new ArrayList<>(film.getGenres());
+        jdbcTemplate.batchUpdate("INSERT INTO film_genre VALUES (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setInt(1, film.getId());
+                        ps.setInt(2, genres.get(i).getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return genres.size();
+                    }
+                });
     }
 
     public void addLike(int filmId, int userId) {
