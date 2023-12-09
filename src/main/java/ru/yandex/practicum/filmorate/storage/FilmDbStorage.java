@@ -23,8 +23,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -114,28 +115,51 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void enrichFilms(Collection<Film> films) {
-        String genresForFilm = "SELECT * FROM film_genre AS fg " +
-                "JOIN genre AS g ON fg.genre_id = g.genre_id " +
-                "WHERE film_id = ?";
-        String likesForFilm = "SELECT * FROM \"like\" WHERE film_id = ?";
-        String directorsForFilm = "SELECT * FROM director_film AS df " +
-                "JOIN directors AS d ON df.director_id = d.id " +
-                "WHERE film_id = ?";
+        List<Integer> ids = films.stream()
+                .map(Film::getId)
+                .collect(Collectors.toList());
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+
+        List<Map<Integer, Genre>> genresForFilm = jdbcTemplate.query(String.format("SELECT * FROM film_genre AS fg " +
+                        "JOIN genre AS g ON fg.genre_id = g.genre_id " +
+                        "WHERE film_id IN (%s) " +
+                        "ORDER BY film_id", inSql),
+                (rs, rowNum) -> Map.of(rs.getInt("film_id"), new Genre(rs.getInt("genre_id"),
+                        rs.getString("name"))), ids.toArray());
+
+        List<Map<Integer, Integer>> likesForFilm = jdbcTemplate.query(String.format("SELECT * FROM \"like\" " +
+                        "WHERE film_id IN (%s) " +
+                        "ORDER BY film_id", inSql),
+                (rs, rowNum) -> Map.of(rs.getInt("film_id"), rs.getInt("user_id")), ids.toArray());
+
+        List<Map<Integer, Director>> directorsForFilm = jdbcTemplate.query(String.format("SELECT * FROM director_film AS df " +
+                        "JOIN directors AS d ON df.director_id = d.id " +
+                        "WHERE film_id IN (%s) " +
+                        "ORDER BY film_id", inSql),
+                (rs, rowNum) -> Map.of(rs.getInt("film_id"), new Director(rs.getInt("director_id"),
+                        rs.getString("name"))), ids.toArray());
 
         for (Film film : films) {
-            Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
-                    (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
-                    ), film.getId());
-            Collection<Integer> likes = jdbcTemplate.query(likesForFilm,
-                    ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
-            Collection<Director> directors = jdbcTemplate.query(directorsForFilm,
-                    (rs, rowNum) -> new Director(rs.getInt("director_id"), rs.getString("name")
-                    ), film.getId());
-            film.setGenres(new HashSet<>(genres));
-            film.setLikes(new HashSet<>(likes));
-            film.setDirectors(new HashSet<>(directors));
+            int filmId = film.getId();
+
+            for (Map<Integer, Genre> map : genresForFilm) {
+                if (map.get(filmId) != null) {
+                    film.getGenres().add(map.get(filmId));
+                }
+            }
+            for (Map<Integer, Integer> map : likesForFilm) {
+                if (map.get(filmId) != null) {
+                    film.getLikes().add(map.get(filmId));
+                }
+            }
+            for (Map<Integer, Director> map : directorsForFilm) {
+                if (map.get(filmId) != null) {
+                    film.getDirectors().add(map.get(filmId));
+                }
+            }
         }
     }
+
 
     private void updateFilmGenres(Film film) {
         jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
