@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.RecommendationsDbStorage;
+import ru.yandex.practicum.filmorate.storage.RecommendationsStorage;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RecommendationsService {
-    private final RecommendationsDbStorage recommendationsDbStorage;
+    private final RecommendationsStorage recommendationsStorage;
     private final FilmStorage filmStorage;
 
     public List<Film> getUserRecommendations(int userId) {
-        var allLikes = recommendationsDbStorage.getAllLikes();
+        var allLikes = recommendationsStorage.getCommonLikes(userId);
         if (allLikes.size() == 0) {
             return Collections.EMPTY_LIST;
         }
