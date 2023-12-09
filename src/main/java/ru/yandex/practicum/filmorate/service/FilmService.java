@@ -60,7 +60,6 @@ public class FilmService {
                 .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
                 .limit(count)
                 .collect(Collectors.toList());
-        sortedFilms.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
         log.info("Top films received: {}", sortedFilms);
         return sortedFilms;
     }
@@ -91,7 +90,6 @@ public class FilmService {
 
     public List<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
-        films.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
         log.info("Films received: {}", films);
         return films;
     }
@@ -115,7 +113,6 @@ public class FilmService {
             throw new DataNotFoundException("Director not found");
         }
         List<Film> films = filmStorage.getSortedFilmsByDirector(directorId, sortBy);
-        films.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
         log.info("Sorted films by director received: {}", films);
         return films;
     }
@@ -133,7 +130,6 @@ public class FilmService {
 
     public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
         List<Film> films = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
-        films.forEach(film -> film.setDirectors(directorStorage.getFilmDirectors(film.getId())));
         log.info("Most popular films by genre and year received: {}", films);
         return films;
     }
