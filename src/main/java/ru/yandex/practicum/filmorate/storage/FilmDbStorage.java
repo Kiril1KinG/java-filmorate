@@ -24,6 +24,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -120,42 +122,48 @@ public class FilmDbStorage implements FilmStorage {
                 .collect(Collectors.toList());
         String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
 
-        List<Map<Integer, Genre>> genresForFilm = jdbcTemplate.query(String.format("SELECT * FROM film_genre AS fg " +
+        Map<Integer, List<Genre>> genresForFilms = jdbcTemplate.query(String.format("SELECT * FROM film_genre AS fg " +
                         "JOIN genre AS g ON fg.genre_id = g.genre_id " +
-                        "WHERE film_id IN (%s) " +
-                        "ORDER BY film_id", inSql),
-                (rs, rowNum) -> Map.of(rs.getInt("film_id"), new Genre(rs.getInt("genre_id"),
-                        rs.getString("name"))), ids.toArray());
+                        "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+                    Map<Integer, List<Genre>> result = new HashMap<>();
+                    List<Genre> genres;
+                    while (rs.next()){
+                        int filmId = rs.getInt("film_id");
+                        if (result.containsKey(filmId)) {
+                            result.get(filmId).add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                        } else {
+                            genres = new ArrayList<>();
+                            genres.add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                            result.put(filmId, genres);
+                        }}
+                    return result;
+                    }, ids.toArray());
 
-        List<Map<Integer, Integer>> likesForFilm = jdbcTemplate.query(String.format("SELECT * FROM \"like\" " +
-                        "WHERE film_id IN (%s) " +
-                        "ORDER BY film_id", inSql),
-                (rs, rowNum) -> Map.of(rs.getInt("film_id"), rs.getInt("user_id")), ids.toArray());
 
-        List<Map<Integer, Director>> directorsForFilm = jdbcTemplate.query(String.format("SELECT * FROM director_film AS df " +
+        Map<Integer, List<Director>> directorsForFilms = jdbcTemplate.query(String.format("SELECT * FROM director_film AS df " +
                         "JOIN directors AS d ON df.director_id = d.id " +
-                        "WHERE film_id IN (%s) " +
-                        "ORDER BY film_id", inSql),
-                (rs, rowNum) -> Map.of(rs.getInt("film_id"), new Director(rs.getInt("director_id"),
-                        rs.getString("name"))), ids.toArray());
+                        "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+                    Map<Integer, List<Director>> result = new HashMap<>();
+                    List<Director> directors;
+                    while (rs.next()){
+                        int filmId = rs.getInt("film_id");
+                        if (result.containsKey(filmId)) {
+                            result.get(filmId).add(new Director(rs.getInt("id"), rs.getString("name")));
+                        } else {
+                            directors = new ArrayList<>();
+                            directors.add(new Director(rs.getInt("id"), rs.getString("name")));
+                            result.put(filmId, directors);
+                        }}
+                    return result;
+                    }, ids.toArray());
 
         for (Film film : films) {
             int filmId = film.getId();
-
-            for (Map<Integer, Genre> map : genresForFilm) {
-                if (map.get(filmId) != null) {
-                    film.getGenres().add(map.get(filmId));
-                }
+            if (genresForFilms.get(filmId) != null) {
+                film.setGenres(new HashSet<>(genresForFilms.get(filmId)));
             }
-            for (Map<Integer, Integer> map : likesForFilm) {
-                if (map.get(filmId) != null) {
-                    film.getLikes().add(map.get(filmId));
-                }
-            }
-            for (Map<Integer, Director> map : directorsForFilm) {
-                if (map.get(filmId) != null) {
-                    film.getDirectors().add(map.get(filmId));
-                }
+            if (directorsForFilms.get(filmId) != null) {
+                film.setDirectors(new HashSet<>(directorsForFilms.get(filmId)));
             }
         }
     }
