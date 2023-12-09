@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.Service.UserService;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.RecommendationsService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final RecommendationsService recommendationsService;
 
     @GetMapping
     public List<User> getUsers() {
@@ -69,5 +73,22 @@ public class UserController {
     public List<User> getMutualFriends(@PathVariable int id, @PathVariable int friendId) {
         log.info("GET: /users/{}/friends/common/{}", id, friendId);
         return userService.getMutualFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Feed> getUserFeed(@PathVariable int id) {
+        return userService.getUserFeeds(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable int id) {
+        log.info("GET: /users/{}/recommendations", id);
+        return recommendationsService.getUserRecommendations(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        log.info("DELETE: /users/{}", id);
+        userService.deleteUser(id);
     }
 }

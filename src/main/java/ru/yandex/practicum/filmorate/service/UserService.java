@@ -1,10 +1,13 @@
-package ru.yandex.practicum.filmorate.Service;
+package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -28,6 +31,7 @@ public class UserService {
         }
         userStorage.addFriend(userId, friendId);
         User user = userStorage.getUserById(userId);
+        addFeed(userId, friendId, EventType.FRIEND, Operation.ADD);
         log.info("Friend added: {}", user);
         return user;
     }
@@ -41,6 +45,7 @@ public class UserService {
         }
         userStorage.deleteFriend(userId, friendId);
         User user = userStorage.getUserById(userId);
+        addFeed(userId, friendId, EventType.FRIEND, Operation.REMOVE);
         log.info("Friend deleted: {}", user);
         return user;
     }
@@ -106,6 +111,25 @@ public class UserService {
         User resultUser = userStorage.getUserById(id);
         log.info("User by id received: {}", resultUser);
         return resultUser;
+    }
+
+    public void deleteUser(int userId) {
+        if (!userStorage.containsUserById(userId)) {
+            throw new DataNotFoundException("Delete user failed: User not found");
+        }
+        userStorage.deleteUser(userId);
+        log.info("User deleted: {}", userId);
+    }
+
+    public List<Feed> getUserFeeds(int id) {
+        if (!userStorage.containsUserById(id)) {
+            throw new DataNotFoundException("Get user feeds failed: Incorrect id");
+        }
+        return userStorage.getUserFeeds(id);
+    }
+
+    public void addFeed(int userId, int entityId, EventType eventType, Operation operation) {
+        userStorage.addFeed(userId, entityId, eventType, operation);
     }
 
 
