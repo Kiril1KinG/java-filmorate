@@ -121,6 +121,7 @@ public class ReviewDbStorage {
             return false;
         }
     }
+
     public boolean containsReviewForFilmByUser(int filmId, int userId) {
         try {
             Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM review " +

@@ -123,39 +123,41 @@ public class FilmDbStorage implements FilmStorage {
         String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
 
         Map<Integer, List<Genre>> genresForFilms = jdbcTemplate.query(String.format("SELECT * FROM film_genre AS fg " +
-                        "JOIN genre AS g ON fg.genre_id = g.genre_id " +
-                        "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
-                    Map<Integer, List<Genre>> result = new HashMap<>();
-                    List<Genre> genres;
-                    while (rs.next()){
-                        int filmId = rs.getInt("film_id");
-                        if (result.containsKey(filmId)) {
-                            result.get(filmId).add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
-                        } else {
-                            genres = new ArrayList<>();
-                            genres.add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
-                            result.put(filmId, genres);
-                        }}
-                    return result;
-                    }, ids.toArray());
+                "JOIN genre AS g ON fg.genre_id = g.genre_id " +
+                "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+            Map<Integer, List<Genre>> result = new HashMap<>();
+            List<Genre> genres;
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                if (result.containsKey(filmId)) {
+                    result.get(filmId).add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                } else {
+                    genres = new ArrayList<>();
+                    genres.add(new Genre(rs.getInt("genre_id"), rs.getString("name")));
+                    result.put(filmId, genres);
+                }
+            }
+            return result;
+        }, ids.toArray());
 
 
         Map<Integer, List<Director>> directorsForFilms = jdbcTemplate.query(String.format("SELECT * FROM director_film AS df " +
-                        "JOIN directors AS d ON df.director_id = d.id " +
-                        "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
-                    Map<Integer, List<Director>> result = new HashMap<>();
-                    List<Director> directors;
-                    while (rs.next()){
-                        int filmId = rs.getInt("film_id");
-                        if (result.containsKey(filmId)) {
-                            result.get(filmId).add(new Director(rs.getInt("id"), rs.getString("name")));
-                        } else {
-                            directors = new ArrayList<>();
-                            directors.add(new Director(rs.getInt("id"), rs.getString("name")));
-                            result.put(filmId, directors);
-                        }}
-                    return result;
-                    }, ids.toArray());
+                "JOIN directors AS d ON df.director_id = d.id " +
+                "WHERE film_id IN (%s) ", inSql), (ResultSet rs) -> {
+            Map<Integer, List<Director>> result = new HashMap<>();
+            List<Director> directors;
+            while (rs.next()) {
+                int filmId = rs.getInt("film_id");
+                if (result.containsKey(filmId)) {
+                    result.get(filmId).add(new Director(rs.getInt("id"), rs.getString("name")));
+                } else {
+                    directors = new ArrayList<>();
+                    directors.add(new Director(rs.getInt("id"), rs.getString("name")));
+                    result.put(filmId, directors);
+                }
+            }
+            return result;
+        }, ids.toArray());
 
         for (Film film : films) {
             int filmId = film.getId();
