@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 public class Director {
     private int id;
     @NotBlank
+    @Size(max = 100)
     private String name;
 
     public Map<String, Object> toMap() {

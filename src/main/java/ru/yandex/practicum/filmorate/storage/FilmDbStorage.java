@@ -22,8 +22,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,22 +121,29 @@ public class FilmDbStorage implements FilmStorage {
                 "JOIN genre AS g ON fg.genre_id = g.genre_id " +
                 "WHERE film_id = ?";
         String likesForFilm = "SELECT * FROM \"like\" WHERE film_id = ?";
-        String directorsForFilm = "SELECT * FROM director_film AS df " +
+        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+        String directorsForFilm = String.format("SELECT * FROM director_film AS df " +
                 "JOIN directors AS d ON df.director_id = d.id " +
-                "WHERE film_id = ?";
-
+                "WHERE film_id IN (%s)", inSql);
+        Collection<Map<Integer, Director>> directors = jdbcTemplate.query(directorsForFilm,
+                films.stream().map(Film::getId).toArray(), (rs, rowNum) -> Map.of(rs.getInt("film_id"),
+                        new Director(rs.getInt("director_id"), rs.getString("name"))));
+        Map<Integer, Set<Director>> idToDirector = new HashMap<>();
+        directors.forEach((m -> {
+            Integer key = m.keySet().stream().findFirst().orElse(0);
+            Set<Director> directorSet = idToDirector.getOrDefault(key, new HashSet<>());
+            directorSet.add(m.get(key));
+            idToDirector.put(key, directorSet);
+        }));
         for (Film film : films) {
             Collection<Genre> genres = jdbcTemplate.query(genresForFilm,
                     (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")
                     ), film.getId());
             Collection<Integer> likes = jdbcTemplate.query(likesForFilm,
                     ((rs, rowNum) -> rs.getInt("user_id")), film.getId());
-            Collection<Director> directors = jdbcTemplate.query(directorsForFilm,
-                    (rs, rowNum) -> new Director(rs.getInt("director_id"), rs.getString("name")
-                    ), film.getId());
             film.setGenres(new HashSet<>(genres));
             film.setLikes(new HashSet<>(likes));
-            film.setDirectors(new HashSet<>(directors));
+            film.setDirectors(idToDirector.getOrDefault(film.getId(), new HashSet<>()));
         }
     }
 

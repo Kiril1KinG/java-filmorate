@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,15 +16,19 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 @RequiredArgsConstructor
+@Validated
 public class FilmController {
 
     private final FilmService filmService;
+    private static final int MIN_YEAR = 1895;
 
 
     @GetMapping
@@ -83,9 +88,9 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(defaultValue = "10") int count,
+    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(defaultValue = "10") @Positive int count,
                                                     @RequestParam(required = false) Integer genreId,
-                                                    @RequestParam(required = false) Integer year) {
+                                                    @RequestParam(required = false) @Min(value = MIN_YEAR) Integer year) {
         log.info("GET: /films/popular?count={}&genreId={}&year={}", count, genreId, year);
         return filmService.getPopularFilmsByGenreAndYear(count, genreId, year);
     }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.DataAlreadyExistsException;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Map;
 
 @Slf4j
@@ -34,6 +36,11 @@ public class ErrorHandler {
     public Map<String, String> handleDataNotFound(DataAlreadyExistsException e) {
         log.info(e.getMessage(), e);
         return Map.of("Already exists", e.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+        return new ResponseEntity<>(Map.of("Validation failed", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
