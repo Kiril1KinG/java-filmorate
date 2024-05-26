@@ -1,12 +1,14 @@
-package ru.yandex.practicum.filmorate.Service;
+package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -24,7 +26,7 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final JdbcTemplate jdbcTemplate;
+    private final DirectorStorage directorStorage;
 
 
     public void addLike(int filmId, int userId) {
@@ -35,6 +37,7 @@ public class FilmService {
             throw new DataNotFoundException("Add like failed: Incorrect user id");
         }
         filmStorage.addLike(filmId, userId);
+        userStorage.addFeed(userId, filmId, EventType.LIKE, Operation.ADD);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like added: {}", film);
     }
@@ -47,6 +50,7 @@ public class FilmService {
             throw new DataNotFoundException("Delete like failed: Incorrect user id");
         }
         filmStorage.deleteLike(filmId, userId);
+        userStorage.addFeed(userId, filmId, EventType.LIKE, Operation.REMOVE);
         Film film = filmStorage.getFilmById(filmId);
         log.info("Like deleted: {}", film);
     }
@@ -66,8 +70,10 @@ public class FilmService {
         }
         filmStorage.validateFilm(film, "Add");
         validateReleaseDate(film);
+        film = filmStorage.addFilm(film);
+        directorStorage.addFilmDirectors(film);
         log.info("Film added: {}", film);
-        return filmStorage.addFilm(film);
+        return film;
     }
 
     public Film updateFilm(Film film) {
@@ -75,8 +81,11 @@ public class FilmService {
             throw new DataNotFoundException("Update film failed: Film not found");
         }
         filmStorage.validateFilm(film, "Update");
+        directorStorage.deleteFilmDirectors(film);
+        film = filmStorage.updateFilm(film);
+        directorStorage.addFilmDirectors(film);
         log.info("Film updated: {}", film);
-        return filmStorage.updateFilm(film);
+        return film;
     }
 
     public List<Film> getFilms() {
@@ -93,8 +102,44 @@ public class FilmService {
 
     public Film getFilmById(int id) {
         Film film = filmStorage.getFilmById(id);
+        film.setDirectors(directorStorage.getFilmDirectors(id));
         log.info("Film by id received: {}", film);
         return film;
+    }
+
+    public List<Film> getSortedFilmsByDirector(int directorId, List<String> sortBy) {
+        if (!directorStorage.containsDirectorById(directorId)) {
+            log.warn("Director with id={} doesn't exist", directorId);
+            throw new DataNotFoundException("Director not found");
+        }
+        List<Film> films = filmStorage.getSortedFilmsByDirector(directorId, sortBy);
+        log.info("Sorted films by director received: {}", films);
+        return films;
+    }
+
+    public List<Film> searchFilms(String query, String by) {
+        return filmStorage.searchFilms(query, by);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        List<Film> sortedFilms = filmStorage.getCommonFilms(userId, friendId).stream()
+                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+        return sortedFilms;
+    }
+
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        List<Film> films = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+        log.info("Most popular films by genre and year received: {}", films);
+        return films;
+    }
+
+    public void deleteFilm(int filmId) {
+        if (!filmStorage.containsFilmById(filmId)) {
+            throw new DataNotFoundException("Delete film failed: Film not found");
+        }
+        filmStorage.deleteFilm(filmId);
+        log.info("Film deleted: {}", filmId);
     }
 
 }
